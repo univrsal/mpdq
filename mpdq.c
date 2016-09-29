@@ -4,6 +4,7 @@
  * Adding trayicons to control mpd
  * Licenced under MPL 2.0
  */
+#include <X11/Xlib.h>
 #include <mpd/client.h>
 #include <mpd/stats.h>
 #include <stdlib.h>
@@ -37,8 +38,8 @@ void clean_up(void);
 
 int main(int argc, char const *argv[])
 {
-    initX();
     cfg = create_or_open_cfg("./mpdq.cfg");
+    initX(cfg);
 
     // Vars
     int event_result = -1;
@@ -54,12 +55,11 @@ int main(int argc, char const *argv[])
     else if (!conn) 
         _log("Connection failure!\n", 1);
 
-    _log("heyo", 0);
-    
     // Get song
     while (runFlag)
     {
-        //draw_tray(state);
+        draw_tray(state, cfg);
+
         status = mpd_run_status(conn);
         song   = mpd_run_current_song(conn);
         state  = mpd_status_get_state(status);
@@ -92,7 +92,7 @@ int main(int argc, char const *argv[])
         if (event_result > -1)
             tray_window_event(event_result, state, conn);
 
-        draw_tray(state);
+        draw_tray(state, cfg);
 
         if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
             system(cmd);

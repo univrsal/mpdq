@@ -37,3 +37,9 @@ int startsWith(const char* str, const char* pre)
            lenstr = strlen(str);
     return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
 }
+
+void scale_point(float scale, XPoint* p)
+{
+    p->x = p->x * scale;
+    p->y = p->y * scale;
+}

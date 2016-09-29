@@ -11,13 +11,21 @@
 #define BTN_PLAY 1
 #define BTN_PREV 2
 
-void initX(void)
+void initX(Config* cfg)
 {
     XInitThreads();
     if((display = XOpenDisplay(NULL)) == NULL) {
         _log("Cannot open display", 1);
     }
+
     screen = DefaultScreen(display);
+
+    for (int i = 0; i < npathpoints; i++)
+        scale_point(cfg->icon_scale, &play_path[i]);
+
+    for (int i = 0; i < npathpoints; i++)
+        scale_point(cfg->icon_scale, &back_path[i]);
+
     create_tray_icons();
 }
 
@@ -75,7 +83,7 @@ void create_tray_icons(void)
     }
 }
 
-void draw_tray(int state, Config* cfg)
+void draw_tray(int state)
 {
     XSetForeground(display, gc[1], 0x222222); // Clean up old play/pause icon
     XFillRectangle(display, tray_windows[1], gc[1], 0, 0, 20, 20);
@@ -87,12 +95,12 @@ void draw_tray(int state, Config* cfg)
         switch (i)
         {
             case BTN_NEXT:
-                XFillPolygon(display, tray_windows[i],   gc[i], cfg->play_path, cfg->npathpoints, Complex, CoordModeOrigin); // Play Triangle
+                XFillPolygon(display, tray_windows[i],   gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Triangle
                 XFillRectangle(display, tray_windows[i], gc[i], 15, 3, 2, 11);
                 break;
             case BTN_PLAY:
                 if (state != 2)
-                    XFillPolygon(display, tray_windows[i], gc[i], cfg->play_path, cfg->npathpoints, Complex, CoordModeOrigin); // Play Icon
+                    XFillPolygon(display, tray_windows[i], gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Icon
                 else // Pause
                 {
                     XFillRectangle(display, tray_windows[i], gc[i], 4, 3, 3, 11);
@@ -100,7 +108,7 @@ void draw_tray(int state, Config* cfg)
                 }
                 break;
             case BTN_PREV:
-                XFillPolygon(display, tray_windows[i], gc[i], cfg->back_path, cfg->npathpoints, Complex, CoordModeOrigin);
+                XFillPolygon(display, tray_windows[i], gc[i], back_path, npathpoints, Complex, CoordModeOrigin);
                 XFillRectangle(display, tray_windows[i], gc[i], 0, 3, 2, 11);
         }
     }

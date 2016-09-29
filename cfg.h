@@ -11,12 +11,6 @@ struct _Config
 {	
 	float icon_scale;
 	int   root_window_song;
-
-	XPoint* play_path; // Path of the 'Play' triangle
-
-	XPoint* back_path; // Path of the 'Last Song' triangle
-	
-	int npathpoints;
 };
 
 typedef struct _Config Config;
@@ -28,7 +22,5 @@ void close_file(FILE* file);
 char* read_line(FILE* file);
 
 Config* create_or_open_cfg(char* path);
-
-Config* apply_cfg(Config* cfg);
 
 #endif /* CFG_H */

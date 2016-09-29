@@ -81,9 +81,12 @@ Config* create_or_open_cfg(char* path)
 	{
 		config->icon_scale = 1.0;
 		config->root_window_song = 1;
-	    _log(append("No config creating it under ", path), 0);
+	    
+        _log(append("No config creating it under ", path), 0);
 	    _log("\n", 0);
+
 	    FILE* cfg = fopen(path, "ab+");
+
 	    fprintf(cfg, "# MPDQ v%s Config\n", version);
 	    fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
 	    fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
@@ -91,21 +94,5 @@ Config* create_or_open_cfg(char* path)
 	    fprintf(cfg, "song_to_root_window=%i\n", config->root_window_song);
 	}
 
-	apply_cfg(config);
-	
 	return config;
-}
-
-Config* apply_cfg(Config* cfg)
-{
-	// Apply icon scaling
-	XPoint play_path[] = { { 3 * cfg->icon_scale, 2 * cfg->icon_scale }, { 15 * cfg->icon_scale, 8 * cfg->icon_scale }, { 3 * cfg->icon_scale,  14 * cfg->icon_scale }, { 3 * cfg->icon_scale, 2 * cfg->icon_scale } };
-
-	XPoint back_path[] = { { 2 * cfg->icon_scale, 8 * cfg->icon_scale }, { 14 * cfg->icon_scale, 2 * cfg->icon_scale }, { 14 * cfg->icon_scale, 14 * cfg->icon_scale }, { 2 * cfg->icon_scale, 8 * cfg->icon_scale } }; // Path of the 'Last Song' triangle
-
-	cfg->play_path = play_path;
-	cfg->back_path = back_path;
-	cfg->npathpoints = sizeof(cfg->play_path) / sizeof(XPoint);
-
-    return cfg;
 }
