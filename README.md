@@ -1,0 +1,2 @@
+# mpdq
+MusicPlayerDaemon Query
