@@ -1,3 +1,9 @@
+/**
+ * MPDQ
+ * Music Player Daemon Query
+ * Adding trayicons to control mpd
+ * Licenced under MPL 2.0
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -10,7 +16,9 @@
 struct _Config
 {	
 	float icon_scale;
-	int   root_window_song;
+	unsigned int root_window_song;
+	unsigned int delay;
+	int icon_color;
 };
 
 typedef struct _Config Config;

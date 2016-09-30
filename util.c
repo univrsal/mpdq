@@ -43,3 +43,19 @@ void scale_point(float scale, XPoint* p)
     p->x = p->x * scale;
     p->y = p->y * scale;
 }
+
+void scale_rect(float scale, Rect* r)
+{
+    r->x = r->x * scale;
+    r->y = r->y * scale;
+    r->w = r->w * scale;
+    r->h = r->h * scale;
+}
+
+void free_rect(Rect* r)
+{
+    r->x = 0;
+    r->y = 0;
+    r->w = 0;
+    r->h = 0;
+}

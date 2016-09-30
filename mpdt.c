@@ -10,6 +10,8 @@
 #define BTN_NEXT 0
 #define BTN_PLAY 1
 #define BTN_PREV 2
+#define BTN_SCROLLUP 3
+#define BTN_SCROLLDOWN 4
 
 void initX(Config* cfg)
 {
@@ -27,6 +29,11 @@ void initX(Config* cfg)
         scale_point(cfg->icon_scale, &back_path[i]);
 
     create_tray_icons();
+
+    scale_rect(cfg->icon_scale, &next_rect);
+    scale_rect(cfg->icon_scale, &back_rect);
+    scale_rect(cfg->icon_scale, &pause_rect1);
+    scale_rect(cfg->icon_scale, &pause_rect2);
 }
 
 void send_message(Display* dpy, Window w, long message, long data1, long data2, long data3)
@@ -48,7 +55,7 @@ void send_message(Display* dpy, Window w, long message, long data1, long data2, 
     XSync(dpy, False);
 }
 
-void tray_window_event(int btn, int state, struct mpd_connection* conn) {
+void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd_connection* conn) {
     switch (btn)
     {
         case BTN_NEXT:
@@ -62,6 +69,13 @@ void tray_window_event(int btn, int state, struct mpd_connection* conn) {
             break;
         case BTN_PREV:
             mpd_run_previous(conn);
+            break;
+        case BTN_SCROLLDOWN:
+            change_volume(-1, status, conn);
+            break;
+        case BTN_SCROLLUP:
+            change_volume(1, status, conn);
+            break;
     }
 }
 
@@ -83,33 +97,32 @@ void create_tray_icons(void)
     }
 }
 
-void draw_tray(int state)
+void draw_tray(int state, int icon_color)
 {
-    XSetForeground(display, gc[1], 0x222222); // Clean up old play/pause icon
-    XFillRectangle(display, tray_windows[1], gc[1], 0, 0, 20, 20);
-
+    XClearWindow(display, tray_windows[1]);
+  
     for (int i = 0; i < 3; i++)
     {
-        XSetForeground(display, gc[i], 0xbbbbbb);
+        XSetForeground(display, gc[i], icon_color);
 
         switch (i)
         {
             case BTN_NEXT:
                 XFillPolygon(display, tray_windows[i],   gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Triangle
-                XFillRectangle(display, tray_windows[i], gc[i], 15, 3, 2, 11);
+                XFillRectangle(display, tray_windows[i], gc[i], next_rect.x, next_rect.y, next_rect.w, next_rect.h);
                 break;
             case BTN_PLAY:
                 if (state != 2)
                     XFillPolygon(display, tray_windows[i], gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Icon
                 else // Pause
                 {
-                    XFillRectangle(display, tray_windows[i], gc[i], 4, 3, 3, 11);
-                    XFillRectangle(display, tray_windows[i], gc[i], 10, 3, 3, 11);
+                    XFillRectangle(display, tray_windows[i], gc[i], pause_rect1.x, pause_rect1.y, pause_rect1.w,  pause_rect1.h);
+                    XFillRectangle(display, tray_windows[i], gc[i], pause_rect2.x, pause_rect2.y, pause_rect2.w,  pause_rect2.h);
                 }
                 break;
             case BTN_PREV:
                 XFillPolygon(display, tray_windows[i], gc[i], back_path, npathpoints, Complex, CoordModeOrigin);
-                XFillRectangle(display, tray_windows[i], gc[i], 0, 3, 2, 11);
+                XFillRectangle(display, tray_windows[i], gc[i], back_rect.x, back_rect.y, back_rect.w, back_rect.h);
         }
     }
 }
@@ -119,15 +132,35 @@ int handle_events(void)
     while(XPending(display))
     {
         XNextEvent(display, &event);
-        for (int i = 0; i < 3; i++)
+
+        switch(event.type)
         {
-            if (event.xany.window == tray_windows[i])
-            {
-                return i;
-            }
+            case ButtonPress:
+                if (event.xbutton.button == Button1) // Clicked on traybar -> execute button action
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (event.xany.window == tray_windows[i])
+                        {
+                            return i;
+                        }
+                    }  
+                }
+                else if (event.xbutton.button == Button4)
+                    return BTN_SCROLLUP;
+                else if (event.xbutton.button == Button5)
+                    return BTN_SCROLLDOWN;
+                break;
         }
     }
     return -1;
+}
+
+void change_volume(int v, struct mpd_status* status, struct mpd_connection* conn)
+{
+    int d = mpd_status_get_volume(status);
+    d = d + v <= 100 ? (d + v >= 0 ? d + v : 0) : 100;
+    mpd_run_set_volume(conn, v + d);
 }
 
 void destroy_tray_icons(void)
@@ -139,4 +172,9 @@ void destroy_tray_icons(void)
          XFreeGC(display, gc[i]);
     
     XCloseDisplay(display);
+
+    free_rect(&next_rect);
+    free_rect(&back_rect);
+    free_rect(&pause_rect1);
+    free_rect(&pause_rect1);
 }

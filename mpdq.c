@@ -17,12 +17,12 @@
 #include <cfg.h>
 
 /*　Vars */
-static uint32_t     tray_width = 32, tray_height = 32;
 static volatile int runFlag = 1;
 static struct       mpd_connection   *conn;
 static struct       mpd_status       *status;
 static struct       mpd_song         *song;
 static enum         mpd_state        state = 0;
+static int          old_mpd_state          = -1;
 static char         *song_name;
 static char         *artist_name;
 static char         *cmd;
@@ -58,12 +58,10 @@ int main(int argc, char const *argv[])
     // Get song
     while (runFlag)
     {
-        draw_tray(state, cfg);
-
         status = mpd_run_status(conn);
         song   = mpd_run_current_song(conn);
         state  = mpd_status_get_state(status);
-        
+
         if (!song) _log("Couldn't recieve current song!\n", 1);
         if (!status) _log("Couldn't recieve status of MPD!\n", 1);  
 
@@ -89,14 +87,21 @@ int main(int argc, char const *argv[])
 
         event_result = handle_events();
 
-        if (event_result > -1)
-            tray_window_event(event_result, state, conn);
+        if (event_result == 1) // Toggle state playing <--> paused, without waiting for the next update cycle
+            state = state == 2 ? 3 : 2;
+        
+        if (state != old_mpd_state) {
+            draw_tray(state, cfg->icon_color);
+            old_mpd_state = state;
+        }
 
-        draw_tray(state, cfg);
+        if (event_result > -1)
+            tray_window_event(event_result, state, status, conn);
 
         if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
             system(cmd);
-        usleep(1000 * 500); // 500ms update cycle
+
+        usleep(1000 * cfg->delay); // 500ms update cycle
     }
 
     printf("Disconnecting...\n");
@@ -119,4 +124,5 @@ void clean_up(void)
     cmd = NULL;
     base_cmd = NULL;
     cmd_end = NULL;
+    free(cfg);
 }
