@@ -22,13 +22,16 @@ static struct       mpd_connection   *conn;
 static struct       mpd_status       *status;
 static struct       mpd_song         *song;
 static enum         mpd_state        state = 0;
+static unsigned int song_scroll = 0;
 static char         *song_name;
 static char         *artist_name;
+static char         *dwm_title;
 static char         *cmd;
 static char         *base_cmd = "xsetroot -name \"";
 static char         *cmd_end  = "\"";
 static char         *space    = " - ";
 static bool         no_refresh = 0;
+static bool         scroll_reverse = 0;
 static Config       *cfg;
 
 /* Util Methods*/
@@ -39,11 +42,14 @@ int main(int argc, char const *argv[])
 {
     cfg = create_or_open_cfg("./mpdq.cfg");
     initX(cfg);
-
+    
     // Vars
     int event_result = -1;
     debug = argc > 1;
+    
+    char* sub_dwm_title[cfg->max_song_length];
 
+    
     // Listen for CTRL + C
     signal(SIGINT, stop);
 
@@ -77,10 +83,26 @@ int main(int argc, char const *argv[])
                         no_refresh = 1;
                     break;
                 case 2:
-                        cmd = append(base_cmd, artist_name); // Playing
-                        cmd = append(cmd, space);
-                        cmd = append(cmd, song_name);
-                        cmd = append(cmd, cmd_end);
+                        dwm_title = append(append(artist_name, space), song_name);
+
+                        if (strlen(dwm_title) > cfg->max_song_length) {
+                            memcpy(sub_dwm_title, &dwm_title[song_scroll], cfg->max_song_length);
+
+                            cmd = append(base_cmd, sub_dwm_title); // Playing
+                            cmd = append(cmd, cmd_end);                       
+
+                            if (song_scroll + cfg->max_song_length == strlen(dwm_title)) {
+                                scroll_reverse = 1;
+                            } else if (song_scroll == 0)
+                                scroll_reverse = 0;
+
+                            song_scroll = scroll_reverse ? song_scroll - 1 : song_scroll + 1;
+                        } else {
+                            cmd = append(base_cmd, dwm_title); // Playing
+                            cmd = append(cmd, cmd_end);
+                            song_scroll = 0;
+                        }
+   
                         no_refresh = 0;
             }
 

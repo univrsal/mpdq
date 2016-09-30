@@ -47,6 +47,7 @@ Config* create_or_open_cfg(char* path)
     config->root_window_song = 1;
     config->delay = 500;
     config->icon_color = 0xbbbbbb;
+    config->max_song_length = 35;
 
 	if(access(path, F_OK) != -1)
 	{
@@ -94,7 +95,12 @@ Config* create_or_open_cfg(char* path)
                 config->icon_color = (int) strtol(split, NULL, 16);
                 _log(append("icon_color=", split), 0);
             }
-
+            else if (strcmp(split, "song_max_length") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->max_song_length = atoi(split);
+                _log(append("song_max_length=", split), 0);
+            }
     		c = read_line(cfg);
     	}
 	}
@@ -114,6 +120,8 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "delay=%i\n", config->delay);
         fprintf(cfg, "# The color of the tray icons in RGB Hex format (RRGGBB) e.g. black = 000000, white = FFFFFF. Default bbbbbb\n");
         fprintf(cfg, "icon_color=bbbbbb\n");
+        fprintf(cfg, "# The maximum character length of songs until they scroll through the dwm bar. Default %i\n", config->max_song_length);
+        fprintf(cfg, "song_max_length=%i\n", config->max_song_length);
 	}
 
 	return config;

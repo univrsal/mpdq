@@ -19,6 +19,7 @@ struct _Config
 	unsigned int root_window_song;
 	unsigned int delay;
 	int icon_color;
+	unsigned int max_song_length;
 };
 
 typedef struct _Config Config;
