@@ -22,7 +22,6 @@ static struct       mpd_connection   *conn;
 static struct       mpd_status       *status;
 static struct       mpd_song         *song;
 static enum         mpd_state        state = 0;
-static int          old_mpd_state          = -1;
 static char         *song_name;
 static char         *artist_name;
 static char         *cmd;
@@ -90,10 +89,7 @@ int main(int argc, char const *argv[])
         if (event_result == 1) // Toggle state playing <--> paused, without waiting for the next update cycle
             state = state == 2 ? 3 : 2;
         
-        if (state != old_mpd_state) {
-            draw_tray(state, cfg->icon_color);
-            old_mpd_state = state;
-        }
+        draw_tray(state, cfg->icon_color);
 
         if (event_result > -1)
             tray_window_event(event_result, state, status, conn);
