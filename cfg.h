@@ -17,6 +17,8 @@ struct _Config
 {	
 	float icon_scale;
 	unsigned int root_window_song;
+	unsigned int song_to_text_file;
+	char* file_path;
 	unsigned int delay;
 	int icon_color;
 	unsigned int max_song_length;

@@ -17,7 +17,7 @@ void initX(Config* cfg)
 {
     XInitThreads();
     if((display = XOpenDisplay(NULL)) == NULL) {
-        _log("Cannot open display", 1);
+        die("Cannot open display", 1);
     }
 
     screen = DefaultScreen(display);

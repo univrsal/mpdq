@@ -22,7 +22,9 @@ struct _Rect
 
 typedef struct _Rect Rect;
 
-void _log(char* c, int stop);
+void die(char* c, int stop);
+
+void _log(char* c);
 
 char* append(char* a, char* b);
 

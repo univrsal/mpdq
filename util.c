@@ -6,12 +6,17 @@
  */
 #include "util.h"
 
-void _log(char* c, int stop)
+void die(char* c, int stop)
 {
 	if (debug)
 		printf(c);
 	if (stop) 
 		exit(EXIT_FAILURE);
+}
+
+void _log(char* c)
+{
+    die(c, 0);
 }
 
 char* append(char* a, char* b)
@@ -25,7 +30,7 @@ char* append(char* a, char* b)
        strcat(out, b);
     }
     else
-        _log("Not enough memory to concat strings!", 1);
+        die("Not enough memory to concat strings!", 1);
     a = NULL;
     b = NULL;
     return out;

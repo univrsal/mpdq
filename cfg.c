@@ -48,6 +48,8 @@ Config* create_or_open_cfg(char* path)
     config->delay = 500;
     config->icon_color = 0xbbbbbb;
     config->max_song_length = 35;
+    config->song_to_text_file = 0;
+    config->file_path = "./mpd-nowplaying.txt";
 
 	if(access(path, F_OK) != -1)
 	{
@@ -101,6 +103,18 @@ Config* create_or_open_cfg(char* path)
                 config->max_song_length = atoi(split);
                 _log(append("song_max_length=", split), 0);
             }
+            else if (strcmp(split, "song_to_text_file") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->song_to_text_file = atoi(split);
+                _log(append("song_to_text_file=", split), 0);
+            }
+            else if (strcmp(split, "file_path") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->file_path = split;
+                _log(append("file_path=", split), 0);
+            }
     		c = read_line(cfg);
     	}
 	}
@@ -120,8 +134,12 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "delay=%i\n", config->delay);
         fprintf(cfg, "# The color of the tray icons in RGB Hex format (RRGGBB) e.g. black = 000000, white = FFFFFF. Default bbbbbb\n");
         fprintf(cfg, "icon_color=bbbbbb\n");
-        fprintf(cfg, "# The maximum character length of songs until they scroll through the dwm bar. Default %i\n", config->max_song_length);
+        fprintf(cfg, "# The maximum character length of songs until they get cut off. Default %i\n", config->max_song_length);
         fprintf(cfg, "song_max_length=%i\n", config->max_song_length);
+        fprintf(cfg, "# Wether to write the current song to a text file. Default %i\n", config->song_to_text_file);
+        fprintf(cfg, "song_to_text_file=%i\n", config->song_to_text_file);
+        fprintf(cfg, "# The path of the text file containing the current song. Default %s\n", config->file_path);
+        fprintf(cfg, "file_path=%s\n", config->file_path);
 	}
 
 	return config;

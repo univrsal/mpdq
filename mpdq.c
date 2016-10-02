@@ -17,12 +17,11 @@
 #include <cfg.h>
 
 /*　Vars */
-static volatile int runFlag = 1;
+static volatile     int runFlag = 1;
 static struct       mpd_connection   *conn;
 static struct       mpd_status       *status;
 static struct       mpd_song         *song;
 static enum         mpd_state        state = 0;
-static unsigned int song_scroll = 0;
 static char         *song_name;
 static char         *artist_name;
 static char         *dwm_title;
@@ -31,7 +30,6 @@ static char         *base_cmd = "xsetroot -name \"";
 static char         *cmd_end  = "\"";
 static char         *space    = " - ";
 static bool         no_refresh = 0;
-static bool         scroll_reverse = 0;
 static Config       *cfg;
 
 /* Util Methods*/
@@ -56,9 +54,9 @@ int main(int argc, char const *argv[])
     // Connect to local MPD 
     conn = mpd_connection_new(NULL, 0, 0);
     if (conn)
-        _log("Connected!\n", 0);
+        _log("Connected!\n");
     else if (!conn) 
-        _log("Connection failure!\n", 1);
+        die("Connection failure!\n", 1);
 
     // Get song
     while (runFlag)
@@ -67,8 +65,8 @@ int main(int argc, char const *argv[])
         song   = mpd_run_current_song(conn);
         state  = mpd_status_get_state(status);
 
-        if (!song) _log("Couldn't recieve current song!\n", 1);
-        if (!status) _log("Couldn't recieve status of MPD!\n", 1);  
+        if (!song) _log("Couldn't recieve current song!\n");
+        if (!status) _log("Couldn't recieve status of MPD!\n");  
 
         // Get song info
         song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
@@ -85,24 +83,15 @@ int main(int argc, char const *argv[])
                 case 2:
                         dwm_title = append(append(artist_name, space), song_name);
 
-                        if (strlen(dwm_title) > cfg->max_song_length) {
-                            memcpy(sub_dwm_title, &dwm_title[song_scroll], cfg->max_song_length);
+                        if (strlen(dwm_title) > cfg->max_song_length + 2) { // Cut off songs
+                            memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 2);
 
                             cmd = append(base_cmd, sub_dwm_title); // Playing
-                            cmd = append(cmd, cmd_end);                       
-
-                            if (song_scroll + cfg->max_song_length == strlen(dwm_title)) {
-                                scroll_reverse = 1;
-                            } else if (song_scroll == 0)
-                                scroll_reverse = 0;
-
-                            song_scroll = scroll_reverse ? song_scroll - 1 : song_scroll + 1;
+                            cmd = append(cmd, cmd_end);
                         } else {
                             cmd = append(base_cmd, dwm_title); // Playing
                             cmd = append(cmd, cmd_end);
-                            song_scroll = 0;
                         }
-   
                         no_refresh = 0;
             }
 
@@ -118,6 +107,9 @@ int main(int argc, char const *argv[])
 
         if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
             system(cmd);
+
+        if (cfg->song_to_text_file && dwm_title != NULL)
+            system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
 
         usleep(1000 * cfg->delay); // 500ms update cycle
     }
