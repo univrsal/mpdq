@@ -22,6 +22,7 @@ struct _Config
 	unsigned int delay;
 	int icon_color;
 	unsigned int max_song_length;
+	int volume_timeout;
 };
 
 typedef struct _Config Config;

@@ -7,10 +7,8 @@
 #include <X11/Xlib.h>
 #include <mpd/client.h>
 #include <mpd/stats.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <util.h>
@@ -86,10 +84,15 @@ int main(int argc, char const *argv[])
                         if (strlen(dwm_title) > cfg->max_song_length + 2) { // Cut off songs
                             memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 2);
 
-                            cmd = append(base_cmd, sub_dwm_title); // Playing
+                            if (volume != NULL)
+                                sub_dwm_title[0] = append(sub_dwm_title[0], volume);
+                            
+                            cmd = append(base_cmd, sub_dwm_title);
                             cmd = append(cmd, cmd_end);
                         } else {
-                            cmd = append(base_cmd, dwm_title); // Playing
+                            if (volume != NULL)
+                                dwm_title = append(dwm_title, volume);
+                            cmd = append(base_cmd, dwm_title);
                             cmd = append(cmd, cmd_end);
                         }
                         no_refresh = 0;
@@ -110,6 +113,17 @@ int main(int argc, char const *argv[])
 
         if (cfg->song_to_text_file && dwm_title != NULL)
             system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
+        
+        if (volume != NULL)
+        {
+            if (cycles * cfg->delay >= cfg->volume_timeout)
+            {
+                cycles = 0;
+                volume = NULL;
+            }
+            cycles++;
+        } else
+            cycles = 0;
 
         usleep(1000 * cfg->delay); // 500ms update cycle
     }

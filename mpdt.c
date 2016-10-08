@@ -6,6 +6,7 @@
  */
 #include <mpdt.h>
 #include <stdio.h>
+
 #define SYSTEM_TRAY_REQUEST_DOCK 0
 #define BTN_NEXT 0
 #define BTN_PLAY 1
@@ -160,7 +161,10 @@ void change_volume(int v, struct mpd_status* status, struct mpd_connection* conn
 {
     int d = mpd_status_get_volume(status);
     d = d + v <= 100 ? (d + v >= 0 ? d + v : 0) : 100;
-    mpd_run_set_volume(conn, v + d);
+
+    volume = itoc(d);
+    mpd_run_set_volume(conn, d);
+    cycles = 0;
 }
 
 void destroy_tray_icons(void)

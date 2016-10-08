@@ -6,6 +6,9 @@
  */
 #include "util.h"
 
+char* volume = NULL;
+int cycles = 0;
+
 void die(char* c, int stop)
 {
 	if (debug)
@@ -63,4 +66,16 @@ void free_rect(Rect* r)
     r->y = 0;
     r->w = 0;
     r->h = 0;
+}
+
+char* itoc(int i)
+{
+     char *buffer;
+
+     buffer = malloc(10);
+     if(buffer)
+        snprintf(buffer, 9, " [%d%]", i);
+     else
+        printf("Not enough ram..\n");
+     return buffer;
 }

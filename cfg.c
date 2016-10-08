@@ -50,16 +50,17 @@ Config* create_or_open_cfg(char* path)
     config->max_song_length = 35;
     config->song_to_text_file = 0;
     config->file_path = "./mpd-nowplaying.txt";
+    config->volume_timeout = 1500;
 
 	if(access(path, F_OK) != -1)
 	{
-    	_log(append("Reading config from ", path), 0);
-    	_log("\n", 0);
+    	_log(append("Reading config from ", path));
+    	_log("\n");
     	
     	FILE* cfg = open_file_rw(path);
     	
     	if (cfg == NULL) {
-    		_log("Error opening config! Using default values\n", 0);
+    		_log("Error opening config! Using default values\n");
     		return NULL;
     	}
 
@@ -77,51 +78,57 @@ Config* create_or_open_cfg(char* path)
     		{
     			split = strtok(NULL, "=");
     			config->root_window_song = atoi(split);
-    			_log(append("song_to_root_window=", split), 0);
+    			_log(append("song_to_root_window=", split));
     		}
     		else if (strcmp(split, "icon_scale") == 0)
     		{
 				split = strtok(NULL, "=");
 				config->icon_scale = atof(split);
-    			_log(append("icon_scale=", split), 0);
+    			_log(append("icon_scale=", split));
     		}
             else if(strcmp(split, "delay") == 0)
             {
                 split = strtok(NULL, "=");
                 config->delay = atoi(split);
-                _log(append("delay=", split), 0);
+                _log(append("delay=", split));
             }
             else if (strcmp(split, "icon_color") == 0)
             {
                 split = strtok(NULL, "=");
                 config->icon_color = (int) strtol(split, NULL, 16);
-                _log(append("icon_color=", split), 0);
+                _log(append("icon_color=", split));
             }
             else if (strcmp(split, "song_max_length") == 0)
             {
                 split = strtok(NULL, "=");
                 config->max_song_length = atoi(split);
-                _log(append("song_max_length=", split), 0);
+                _log(append("song_max_length=", split));
             }
             else if (strcmp(split, "song_to_text_file") == 0)
             {
                 split = strtok(NULL, "=");
                 config->song_to_text_file = atoi(split);
-                _log(append("song_to_text_file=", split), 0);
+                _log(append("song_to_text_file=", split));
             }
             else if (strcmp(split, "file_path") == 0)
             {
                 split = strtok(NULL, "=");
                 config->file_path = split;
-                _log(append("file_path=", split), 0);
+                _log(append("file_path=", split));
+            }
+            else if (strcmp(split, "file_path") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->volume_timeout = atoi(split);
+                _log(append("volume_timeout=", split));     
             }
     		c = read_line(cfg);
     	}
 	}
 	else
 	{
-        _log(append("No config creating it under ", path), 0);
-	    _log("\n", 0);
+        _log(append("No config creating it under ", path));
+	    _log("\n");
 
 	    FILE* cfg = fopen(path, "ab+");
 
@@ -140,6 +147,8 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "song_to_text_file=%i\n", config->song_to_text_file);
         fprintf(cfg, "# The path of the text file containing the current song. Default %s\n", config->file_path);
         fprintf(cfg, "file_path=%s\n", config->file_path);
+        fprintf(cfg, "# The time in ms the volume will be shown when scrolling over the tray icons Default %i\n", config->volume_timeout);
+        fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
 	}
 
 	return config;
