@@ -116,17 +116,17 @@ Config* create_or_open_cfg(char* path)
                 config->file_path = split;
                 _log(append("file_path=", split));
             }
-            else if (strcmp(split, "file_path") == 0)
+            else if (strcmp(split, "volume_timeout") == 0)
             {
                 split = strtok(NULL, "=");
                 config->volume_timeout = atoi(split);
                 _log(append("volume_timeout=", split));     
             }
     		c = read_line(cfg);
-    	}
-	}
+        }
+    }
 	else
-	{
+   {
         _log(append("No config creating it under ", path));
 	    _log("\n");
 

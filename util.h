@@ -12,8 +12,8 @@
 #include <string.h>
 #include <X11/Xlib.h>
 
-static char* version = "1.0";
-static int debug = 1;
+extern char* version;
+extern int debug;
 extern char* volume;
 extern int cycles;
 

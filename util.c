@@ -6,8 +6,10 @@
  */
 #include "util.h"
 
+char* version = "1.1";
 char* volume = NULL;
 int cycles = 0;
+int debug = 1;
 
 void die(char* c, int stop)
 {
