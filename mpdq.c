@@ -63,40 +63,76 @@ int main(int argc, char const *argv[])
         song   = mpd_run_current_song(conn);
         state  = mpd_status_get_state(status);
 
-        if (!song) _log("Couldn't recieve current song!\n");
-        if (!status) _log("Couldn't recieve status of MPD!\n");  
+        if (!song)
+        {
+            _log("Couldn't recieve current song!\n");
+            system("xsetroot -name dwm-6.1"); 
+        }
+        else if (!status)
+        {
+            _log("Couldn't recieve status of MPD!\n");
+            system("xsetroot -name dwm-6.1"); 
+        }
+        else 
+        {
+             // Get song info
+            song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+            artist_name = (char *) mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 
-        // Get song info
-        song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-        artist_name = (char *) mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
+            if (cfg->root_window_song)
+                switch (state)
+                {
+                    case 0:
+                    case 1:
+                            system("xsetroot -name dwm-6.1"); // Stopped/Unknown status
+                            no_refresh = 1;
+                        break;
+                    case 2:
+                            dwm_title = append(append(artist_name, space), song_name);
 
-        if (cfg->root_window_song)
-            switch (state)
+                            if (strlen(dwm_title) > cfg->max_song_length + 3) { // Cut off songs
+                                memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 4);
+
+                                if (volume != NULL)
+                    {
+                                    cmd = append(sub_dwm_title, volume);
+                                    cmd = append(base_cmd, cmd);
+                    cmd = append(cmd, cmd_end);
+                    }
+                    else
+                    {
+                                    cmd = append(base_cmd, sub_dwm_title);
+                                    cmd = append(cmd, cmd_end);
+                                }
+                } else {
+                                if (volume != NULL)
+                                    dwm_title = append(dwm_title, volume);
+                                cmd = append(base_cmd, dwm_title);
+                                cmd = append(cmd, cmd_end);
+                            }
+                            no_refresh = 0;
+                }
+
+            if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
+                system(cmd);
+
+            if (cfg->song_to_text_file && dwm_title != NULL)
+                system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
+            
+            if (volume != NULL)
             {
-                case 0:
-                case 1:
-                        system("xsetroot -name dwm-6.1"); // Stopped/Unknown status
-                        no_refresh = 1;
-                    break;
-                case 2:
-                        dwm_title = append(append(artist_name, space), song_name);
-
-                        if (strlen(dwm_title) > cfg->max_song_length + 2) { // Cut off songs
-                            memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 2);
-
-                            if (volume != NULL)
-                                sub_dwm_title[0] = append(sub_dwm_title[0], volume);
-                            
-                            cmd = append(base_cmd, sub_dwm_title);
-                            cmd = append(cmd, cmd_end);
-                        } else {
-                            if (volume != NULL)
-                                dwm_title = append(dwm_title, volume);
-                            cmd = append(base_cmd, dwm_title);
-                            cmd = append(cmd, cmd_end);
-                        }
-                        no_refresh = 0;
+                if (cycles * cfg->delay >= cfg->volume_timeout)
+                {
+                    cycles = 0;
+                    volume = NULL;
+                }
+                cycles++;
+            } 
+            else
+            {
+                cycles = 0;    
             }
+        }
 
         event_result = handle_events();
 
@@ -107,23 +143,6 @@ int main(int argc, char const *argv[])
 
         if (event_result > -1)
             tray_window_event(event_result, state, status, conn);
-
-        if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
-            system(cmd);
-
-        if (cfg->song_to_text_file && dwm_title != NULL)
-            system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
-        
-        if (volume != NULL)
-        {
-            if (cycles * cfg->delay >= cfg->volume_timeout)
-            {
-                cycles = 0;
-                volume = NULL;
-            }
-            cycles++;
-        } else
-            cycles = 0;
 
         usleep(1000 * cfg->delay); // 500ms update cycle
     }
