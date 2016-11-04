@@ -79,7 +79,7 @@ int main(int argc, char const *argv[])
             song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
             artist_name = (char *) mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 
-            if (cfg->root_window_song)
+            if (cfg->root_window_song && song_name)
                 switch (state)
                 {
                     case 0:
@@ -88,8 +88,14 @@ int main(int argc, char const *argv[])
                             no_refresh = 1;
                         break;
                     case 2:
-                            dwm_title = append(append(artist_name, space), song_name);
-
+                            if (artist_name)
+                            {
+                                dwm_title = append(append(artist_name, space), song_name);   
+                            }
+                            else
+                            {
+                                dwm_title = song_name;   
+                            }
                             if (strlen(dwm_title) > cfg->max_song_length + 3) { // Cut off songs
                                 memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 4);
 
