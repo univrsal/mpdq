@@ -79,6 +79,18 @@ int main(int argc, char const *argv[])
             song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
             artist_name = (char *) mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 
+            if (artist_name)
+            {
+                dwm_title = append(append(artist_name, space), song_name);   
+            }
+            else
+            {
+                dwm_title = song_name;   
+            }
+
+            if (cfg->song_to_text_file && dwm_title != NULL)
+                system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
+                           
             if (cfg->root_window_song && song_name)
                 switch (state)
                 {
@@ -88,29 +100,24 @@ int main(int argc, char const *argv[])
                             no_refresh = 1;
                         break;
                     case 2:
-                            if (artist_name)
-                            {
-                                dwm_title = append(append(artist_name, space), song_name);   
-                            }
-                            else
-                            {
-                                dwm_title = song_name;   
-                            }
-                            if (strlen(dwm_title) > cfg->max_song_length + 3) { // Cut off songs
+                            if (strlen(dwm_title) > cfg->max_song_length + 3) // Cut off songs
+                            { 
                                 memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 4);
 
                                 if (volume != NULL)
-                    {
+                                {
                                     cmd = append(sub_dwm_title, volume);
                                     cmd = append(base_cmd, cmd);
-                    cmd = append(cmd, cmd_end);
-                    }
-                    else
-                    {
+                                    cmd = append(cmd, cmd_end);
+                                }
+                                else
+                                {
                                     cmd = append(base_cmd, sub_dwm_title);
                                     cmd = append(cmd, cmd_end);
                                 }
-                } else {
+                            }
+                            else
+                            {
                                 if (volume != NULL)
                                     dwm_title = append(dwm_title, volume);
                                 cmd = append(base_cmd, dwm_title);
@@ -122,9 +129,6 @@ int main(int argc, char const *argv[])
             if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
                 system(cmd);
 
-            if (cfg->song_to_text_file && dwm_title != NULL)
-                system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
-            
             if (volume != NULL)
             {
                 if (cycles * cfg->delay >= cfg->volume_timeout)
