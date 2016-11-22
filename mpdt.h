@@ -5,6 +5,7 @@
  * Licenced under MPL 2.0
  */
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <string.h>
 #include <mpd/client.h>
 #include <mpd/stats.h>
@@ -47,7 +48,7 @@ void send_message(Display* dpy, Window w, long message, long data1, long data2, 
 
 void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd_connection* conn);
 
-void create_tray_icons(void);
+void create_tray_icons(int reverse);
 
 void draw_tray(int state, int icon_color);
 

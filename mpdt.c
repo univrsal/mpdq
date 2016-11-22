@@ -29,7 +29,7 @@ void initX(Config* cfg)
     for (int i = 0; i < npathpoints; i++)
         scale_point(cfg->icon_scale, &back_path[i]);
 
-    create_tray_icons();
+    create_tray_icons(cfg->reverse);
 
     scale_rect(cfg->icon_scale, &next_rect);
     scale_rect(cfg->icon_scale, &back_rect);
@@ -80,32 +80,63 @@ void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd
     }
 }
 
-void create_tray_icons(void)
+void create_tray_icons(int reverse)
 {
-    for (int i = 0; i < 3; i++)
+
+    XVisualInfo vinfo;
+    XMatchVisualInfo(display, DefaultScreen(display), 32, TrueColor, &vinfo);
+
+    XSetWindowAttributes attr;
+    attr.colormap = XCreateColormap(display, DefaultRootWindow(display), vinfo.visual, AllocNone);
+    attr.border_pixel = 0;
+    attr.background_pixel = 0;
+
+    if (reverse)
     {
-        tray_windows[i] = XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, BlackPixel(display, screen), WhitePixel(display, screen));
-        gc[i] = XCreateGC(display, tray_windows[i], 0, 0);  
-        XSelectInput(display, tray_windows[i], ButtonPress);
-        send_message(display, XGetSelectionOwner(display, XInternAtom(display, "_NET_SYSTEM_TRAY_S0", False)), SYSTEM_TRAY_REQUEST_DOCK, tray_windows[i], 0, 0);
-        
-        Window root;
-        int32_t x_r = 0, y_r = 0;
-        uint32_t border_r = 0, xwin_depth_r = 0;
-        
-        XMoveResizeWindow(display, tray_windows[i], x_r, y_r, 32, 32);
-        XGetGeometry(display, tray_windows[i], &root, &x_r, &y_r, &tray_width, &tray_height, &border_r, &xwin_depth_r);
+        for (int i = 2; i >= 0; i--)
+        {
+            tray_windows[i] = XCreateWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
+            //XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, BlackPixel(display, screen), WhitePixel(display, screen));
+            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);  
+            XSelectInput(display, tray_windows[i], ButtonPress);
+            send_message(display, XGetSelectionOwner(display, XInternAtom(display, "_NET_SYSTEM_TRAY_S0", False)), SYSTEM_TRAY_REQUEST_DOCK, tray_windows[i], 0, 0);
+            
+            Window root;
+            int32_t x_r = 0, y_r = 0;
+            uint32_t border_r = 0, xwin_depth_r = 0;
+            
+            XMoveResizeWindow(display, tray_windows[i], x_r, y_r, 32, 32);
+            XGetGeometry(display, tray_windows[i], &root, &x_r, &y_r, &tray_width, &tray_height, &border_r, &xwin_depth_r);
+        }
     }
+    else
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            tray_windows[i] = XCreateWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
+            //XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, BlackPixel(display, screen), WhitePixel(display, screen));
+            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);  
+            XSelectInput(display, tray_windows[i], ButtonPress);
+            send_message(display, XGetSelectionOwner(display, XInternAtom(display, "_NET_SYSTEM_TRAY_S0", False)), SYSTEM_TRAY_REQUEST_DOCK, tray_windows[i], 0, 0);
+            
+            Window root;
+            int32_t x_r = 0, y_r = 0;
+            uint32_t border_r = 0, xwin_depth_r = 0;
+            
+            XMoveResizeWindow(display, tray_windows[i], x_r, y_r, 32, 32);
+            XGetGeometry(display, tray_windows[i], &root, &x_r, &y_r, &tray_width, &tray_height, &border_r, &xwin_depth_r);
+        } 
+    }
+
 }
 
 void draw_tray(int state, int icon_color)
-{
+{ 
     XClearWindow(display, tray_windows[1]);
-  
+
     for (int i = 0; i < 3; i++)
     {
         XSetForeground(display, gc[i], icon_color);
-
         switch (i)
         {
             case BTN_NEXT:

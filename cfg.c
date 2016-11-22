@@ -51,6 +51,7 @@ Config* create_or_open_cfg(char* path)
     config->song_to_text_file = 0;
     config->file_path = "./mpd-nowplaying.txt";
     config->volume_timeout = 1500;
+    config->reverse = 0;
 
 	if(access(path, F_OK) != -1)
 	{
@@ -59,7 +60,8 @@ Config* create_or_open_cfg(char* path)
     	
     	FILE* cfg = open_file_rw(path);
     	
-    	if (cfg == NULL) {
+    	if (cfg == NULL)
+        {
     		_log("Error opening config! Using default values\n");
     		return NULL;
     	}
@@ -122,11 +124,18 @@ Config* create_or_open_cfg(char* path)
                 config->volume_timeout = atoi(split);
                 _log(append("volume_timeout=", split));     
             }
+            else if (strcmp(split, "icon_reverse") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->reverse = atoi(split);
+                _log(append("icon_reverse=", split));     
+            }
+
     		c = read_line(cfg);
         }
     }
 	else
-   {
+    {
         _log(append("No config creating it under ", path));
 	    _log("\n");
 
@@ -149,7 +158,9 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "file_path=%s\n", config->file_path);
         fprintf(cfg, "# The time in ms the volume will be shown when scrolling over the tray icons Default %i\n", config->volume_timeout);
         fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
-	}
+        fprintf(cfg, "# When set to 1 the icons will be reversed Default %i\n", config->reverse);
+        fprintf(cfg, "icon_reverse=%i\n", config->reverse);
+    }
 
 	return config;
 }
