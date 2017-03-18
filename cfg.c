@@ -41,6 +41,7 @@ void write_line(FILE* file, char* c)
 Config* create_or_open_cfg(char* path)
 {
 	Config* config = malloc(sizeof(Config));
+    Display*    dpy     = XOpenDisplay(0);
 
     // Initialize default values, incase loading the config goes wrong
     config->icon_scale = 1.0;
@@ -52,6 +53,13 @@ Config* create_or_open_cfg(char* path)
     config->file_path = "./mpd-nowplaying.txt";
     config->volume_timeout = 1500;
     config->reverse = 0;
+
+    config->key_next = XKeysymToKeycode(dpy, XK_N);
+    config->key_prev = XKeysymToKeycode(dpy, XK_B);
+    config->key_pause = XKeysymToKeycode(dpy, XK_P);
+    config->key_mod = 128;
+
+    dpy = NULL;
 
 	if(access(path, F_OK) != -1)
 	{
@@ -130,8 +138,31 @@ Config* create_or_open_cfg(char* path)
                 config->reverse = atoi(split);
                 _log(append("icon_reverse=", split));     
             }
-
-    		c = read_line(cfg);
+            else if (strcmp(split, "key_next") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->key_next = atoi(split);
+                _log(append("key_next=", split));     
+            }
+            else if (strcmp(split, "key_prev") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->key_prev = atoi(split);
+                _log(append("key_prev=", split));     
+            }
+            else if (strcmp(split, "key_pause") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->key_pause = atoi(split);
+                _log(append("key_pause=", split));     
+            }
+            else if (strcmp(split, "key_mod") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->key_mod = atoi(split);
+                _log(append("key_mod=", split));     
+            }
+            c = read_line(cfg);
         }
     }
 	else
@@ -160,6 +191,12 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
         fprintf(cfg, "# When set to 1 the icons will be reversed Default %i\n", config->reverse);
         fprintf(cfg, "icon_reverse=%i\n", config->reverse);
+        fprintf(cfg, "# The keybinds. key_next (Next song. Default %i), key_prev (Prev song. Default %i), key_pause (Default %i), key_mod (Modifier eg. Ctrl. Default %i)\n", config->key_next, config->key_prev, config->key_pause, config->key_mod);
+        fprintf(cfg, "# To find out keycodes & modifier masks run xev | grep state and look for state and keycode. State has to be converted from hex to decimal\n");
+        fprintf(cfg, "key_next=%i\n", config->key_next);
+        fprintf(cfg, "key_prev=%i\n", config->key_prev);
+        fprintf(cfg, "key_pause=%i\n", config->key_pause);
+        fprintf(cfg, "key_mod=%i\n", config->key_mod);   
     }
 
 	return config;

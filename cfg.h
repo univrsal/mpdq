@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <util.h>
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 #ifndef CFG_H
 #define CFG_H
@@ -24,6 +25,11 @@ struct _Config
 	unsigned int max_song_length;
 	int volume_timeout;
 	int reverse;
+
+	int key_next;
+	int key_prev;
+	int key_pause;
+	unsigned int key_mod;
 };
 
 typedef struct _Config Config;

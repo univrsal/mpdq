@@ -14,6 +14,10 @@
 #include <util.h>
 #include <cfg.h>
 
+#define STATE_UNKOWN 0
+#define STATE_STOPPED 1
+#define STATE_WORK 2
+
 /*　Vars */
 static volatile     int runFlag = 1;
 static struct       mpd_connection   *conn;
@@ -36,6 +40,21 @@ void clean_up(void);
 
 int main(int argc, char const *argv[])
 {
+    // Listen for CTRL + C
+    signal(SIGINT, stop);
+
+    if (argc > 1 && strcmp(argv[1], "--keyconf") == 0)
+    {
+        init_keyconf();
+        printf("Press CTRL+C to exit\n");
+        while (runFlag) {
+            do_keyconf();
+            usleep(1000 * 500);
+        }
+        close_keyconf();
+        return 0;
+    }
+
     cfg = create_or_open_cfg("./mpdq.cfg");
     initX(cfg);
     
@@ -46,8 +65,6 @@ int main(int argc, char const *argv[])
     char* sub_dwm_title[cfg->max_song_length];
 
     
-    // Listen for CTRL + C
-    signal(SIGINT, stop);
 
     // Connect to local MPD 
     conn = mpd_connection_new(NULL, 0, 0);
@@ -94,12 +111,12 @@ int main(int argc, char const *argv[])
             if (cfg->root_window_song && song_name)
                 switch (state)
                 {
-                    case 0:
-                    case 1:
+                    case STATE_UNKOWN:
+                    case STATE_STOPPED:
                             system("xsetroot -name dwm-6.1"); // Stopped/Unknown status
                             no_refresh = 1;
                         break;
-                    case 2:
+                    case STATE_WORK:
                             if (strlen(dwm_title) > cfg->max_song_length + 3) // Cut off songs
                             { 
                                 memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 4);
@@ -168,6 +185,7 @@ int main(int argc, char const *argv[])
 void clean_up(void)
 {
     destroy_tray_icons();
+    clear_keybinds();
     mpd_status_free(status);
     mpd_connection_free(conn);
     mpd_song_free(song);

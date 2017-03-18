@@ -16,6 +16,8 @@
 
 Window tray_windows[3];
 
+Window root_window;
+
 GC gc[3]; // Graphic context for the icons
 
 Display *display; // The X Display
@@ -40,6 +42,8 @@ Rect pause_rect1 = { 4,  3, 3, 11 };
 
 Rect pause_rect2 = { 10, 3, 3, 11 };
 
+int key_next, key_prev, key_pause;
+
 /* Methods */
 
 void initX(Config* cfg);
@@ -48,12 +52,16 @@ void send_message(Display* dpy, Window w, long message, long data1, long data2, 
 
 void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd_connection* conn);
 
-void create_tray_icons(int reverse);
-
 void draw_tray(int state, int icon_color);
-
-void destroy_tray_icons(void);
 
 int handle_events(void);
 
 void change_volume(int v, struct mpd_status* status, struct mpd_connection* conn);
+
+void create_tray_icons(int reverse);
+
+void destroy_tray_icons(void);
+
+void setup_keybinds(Config* cfg);
+
+void clear_keybinds(Config* cfg);

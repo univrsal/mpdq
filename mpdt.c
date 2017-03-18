@@ -8,11 +8,15 @@
 #include <stdio.h>
 
 #define SYSTEM_TRAY_REQUEST_DOCK 0
+
 #define BTN_NEXT 0
 #define BTN_PLAY 1
 #define BTN_PREV 2
 #define BTN_SCROLLUP 3
 #define BTN_SCROLLDOWN 4
+
+#define EVENT_NEXT 0
+#define EVENT_PREV 2
 
 void initX(Config* cfg)
 {
@@ -23,6 +27,8 @@ void initX(Config* cfg)
 
     screen = DefaultScreen(display);
 
+    root_window = DefaultRootWindow(display);
+
     for (int i = 0; i < npathpoints; i++)
         scale_point(cfg->icon_scale, &play_path[i]);
 
@@ -30,6 +36,8 @@ void initX(Config* cfg)
         scale_point(cfg->icon_scale, &back_path[i]);
 
     create_tray_icons(cfg->reverse);
+    
+    setup_keybinds(cfg);
 
     scale_rect(cfg->icon_scale, &next_rect);
     scale_rect(cfg->icon_scale, &back_rect);
@@ -87,7 +95,7 @@ void create_tray_icons(int reverse)
     XMatchVisualInfo(display, DefaultScreen(display), 32, TrueColor, &vinfo);
 
     XSetWindowAttributes attr;
-    attr.colormap = XCreateColormap(display, DefaultRootWindow(display), vinfo.visual, AllocNone);
+    attr.colormap = XCreateColormap(display, root_window, vinfo.visual, AllocNone);
     attr.border_pixel = 0;
     attr.background_pixel = 0;
 
@@ -183,6 +191,24 @@ int handle_events(void)
                 else if (event.xbutton.button == Button5)
                     return BTN_SCROLLDOWN;
                 break;
+            case KeyPress:
+                printf("Keypressed! KeyCode: %i\n", event.xkey.keycode);
+
+                if (event.xkey.keycode == key_prev) {
+                    printf("Hotkey for previous song pressed!\n");
+                    return BTN_PREV;
+                } 
+                else if (event.xkey.keycode == key_next)
+                {
+                    printf("Hotkey for next song pressed!\n");
+                    return BTN_NEXT;
+                }
+                else if (event.xkey.keycode == key_pause)
+                {
+                    printf("Hotkey for pausing pressed\n");
+                    return BTN_PLAY;
+                }
+                break;
         }
     }
     return -1;
@@ -196,6 +222,34 @@ void change_volume(int v, struct mpd_status* status, struct mpd_connection* conn
     volume = itoc(d);
     mpd_run_set_volume(conn, d);
     cycles = 0;
+}
+
+void setup_keybinds(Config* cfg)
+{
+    int pointer_mode = GrabModeAsync;
+    int keyboard_mode = GrabModeAsync;
+    
+    XGrabKey(display, cfg->key_next, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
+    XGrabKey(display, cfg->key_prev, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
+    XGrabKey(display, cfg->key_pause, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
+
+    // Local copies for event handling
+    key_next = cfg->key_next;
+    key_prev = cfg->key_prev;
+    key_pause = cfg->key_pause;
+
+    XSelectInput(display, root_window, KeyPressMask);
+}
+
+void clear_keybinds(Config* cfg)
+{
+    XUngrabKey(display, cfg->key_next, cfg->key_mod, root_window);
+    XUngrabKey(display, cfg->key_prev, cfg->key_mod, root_window);
+    XUngrabKey(display, cfg->key_pause, cfg->key_mod, root_window);
+    
+    key_next = 0;
+    key_prev = 0;
+    key_pause = 0;
 }
 
 void destroy_tray_icons(void)
@@ -212,4 +266,36 @@ void destroy_tray_icons(void)
     free_rect(&back_rect);
     free_rect(&pause_rect1);
     free_rect(&pause_rect1);
+}
+
+/* Keyconf */
+void init_keyconf(void)
+{
+    XInitThreads();
+    if((display = XOpenDisplay(NULL)) == NULL) {
+        die("Cannot open display", 1);
+    }
+
+    root_window = DefaultRootWindow(display);
+
+    XSelectInput(display, root_window, KeyPressMask);
+}
+
+void close_keyconf(void)
+{
+    XCloseDisplay(display);
+}
+
+void do_keyconf(void)
+{
+    XNextEvent(display, &event);
+
+    switch(event.type)
+    {
+        case KeyPress:
+            printf("KEY_CODE: %i\n", event.xkey.keycode);
+            printf("MOD: %i\n", event.xkey.state);
+        default:
+            break;
+    }
 }
