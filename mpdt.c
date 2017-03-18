@@ -267,35 +267,3 @@ void destroy_tray_icons(void)
     free_rect(&pause_rect1);
     free_rect(&pause_rect1);
 }
-
-/* Keyconf */
-void init_keyconf(void)
-{
-    XInitThreads();
-    if((display = XOpenDisplay(NULL)) == NULL) {
-        die("Cannot open display", 1);
-    }
-
-    root_window = DefaultRootWindow(display);
-
-    XSelectInput(display, root_window, KeyPressMask);
-}
-
-void close_keyconf(void)
-{
-    XCloseDisplay(display);
-}
-
-void do_keyconf(void)
-{
-    XNextEvent(display, &event);
-
-    switch(event.type)
-    {
-        case KeyPress:
-            printf("KEY_CODE: %i\n", event.xkey.keycode);
-            printf("MOD: %i\n", event.xkey.state);
-        default:
-            break;
-    }
-}

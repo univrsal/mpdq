@@ -42,19 +42,7 @@ int main(int argc, char const *argv[])
 {
     // Listen for CTRL + C
     signal(SIGINT, stop);
-
-    if (argc > 1 && strcmp(argv[1], "--keyconf") == 0)
-    {
-        init_keyconf();
-        printf("Press CTRL+C to exit\n");
-        while (runFlag) {
-            do_keyconf();
-            usleep(1000 * 500);
-        }
-        close_keyconf();
-        return 0;
-    }
-
+    
     cfg = create_or_open_cfg("./mpdq.cfg");
     initX(cfg);
     
