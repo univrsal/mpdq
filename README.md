@@ -11,7 +11,7 @@ Use the buttons to:
 * Play/Pause mpd
 * Scroll up/down to increase/decrease the volume
 
-There's also hotkeys for these actions
+There are configurable hotkeys for these actions
 
 Usage
 ```
@@ -23,8 +23,8 @@ Requires mpd to be running and a playlist to be present.
 Currently the config file allows you to change the following things
 * Scaling of the tray icons
 * Color of the tray icons
-* Wether to display the current song in the dwm title bar (Title of the root window)
-* Changing the update intervall
-* Wether to write the current song to a given file
+* Whether to display the current song in the dwm title bar (Title of the root window)
+* Changing the update interval
+* Whether to write the current song to a given file
 * Change hotkeys
 * Reverse traybar order for i3

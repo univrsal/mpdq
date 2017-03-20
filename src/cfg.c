@@ -4,7 +4,7 @@
  * Adding trayicons to control mpd
  * Licenced under MPL 2.0
  */
-#include <cfg.h>
+#include <src/cfg.h>
 
 FILE* open_file_rw(const char* path)
 {
@@ -175,7 +175,7 @@ Config* create_or_open_cfg(char* path)
 	    fprintf(cfg, "# MPDQ v%s Config\n", version);
 	    fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
 	    fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
-	 	fprintf(cfg, "# Wether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->root_window_song);
+	 	fprintf(cfg, "# Whether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->root_window_song);
 	    fprintf(cfg, "song_to_root_window=%i\n", config->root_window_song);
         fprintf(cfg, "# The amount of milliseconds to wait between updates Default %i\n", config->delay);
         fprintf(cfg, "delay=%i\n", config->delay);
@@ -183,7 +183,7 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "icon_color=bbbbbb\n");
         fprintf(cfg, "# The maximum character length of songs until they get cut off. Default %i\n", config->max_song_length);
         fprintf(cfg, "song_max_length=%i\n", config->max_song_length);
-        fprintf(cfg, "# Wether to write the current song to a text file. Default %i\n", config->song_to_text_file);
+        fprintf(cfg, "# Whether to write the current song to a text file. Default %i\n", config->song_to_text_file);
         fprintf(cfg, "song_to_text_file=%i\n", config->song_to_text_file);
         fprintf(cfg, "# The path of the text file containing the current song. Default %s\n", config->file_path);
         fprintf(cfg, "file_path=%s\n", config->file_path);
@@ -191,8 +191,8 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
         fprintf(cfg, "# When set to 1 the icons will be reversed Default %i\n", config->reverse);
         fprintf(cfg, "icon_reverse=%i\n", config->reverse);
-        fprintf(cfg, "# The keybinds. key_next (Next song. Default %i), key_prev (Prev song. Default %i), key_pause (Default %i), key_mod (Modifier eg. Ctrl. Default %i)\n", config->key_next, config->key_prev, config->key_pause, config->key_mod);
-        fprintf(cfg, "# To find out keycodes & modifier masks run xev | grep state and look for state and keycode. State has to be converted from hex to decimal\n");
+        fprintf(cfg, "# The keybinds. key_next (Next song. Default %i), key_prev (Previous song. Default %i), key_pause (Default %i), key_mod (Modifier eg. Ctrl. Default %i)\n", config->key_next, config->key_prev, config->key_pause, config->key_mod);
+        fprintf(cfg, "# To find out keycodes & modifier masks run `xev | grep state` and look for state and keycode. State has to be converted from hex to decimal\n");
         fprintf(cfg, "key_next=%i\n", config->key_next);
         fprintf(cfg, "key_prev=%i\n", config->key_prev);
         fprintf(cfg, "key_pause=%i\n", config->key_pause);
