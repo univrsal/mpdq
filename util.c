@@ -6,7 +6,7 @@
  */
 #include "util.h"
 
-char* version = "2.0";
+char* version = "3.0";
 char* volume = NULL;
 int cycles = 0;
 int debug = 1;
