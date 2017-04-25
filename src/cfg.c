@@ -51,6 +51,7 @@ Config* create_or_open_cfg(char* path)
     config->max_song_length = 35;
     config->song_to_text_file = 0;
     config->file_path = "./mpd-nowplaying.txt";
+    config->title_text = "dwm-6.1";
     config->volume_timeout = 1500;
     config->reverse = 0;
 
@@ -162,6 +163,12 @@ Config* create_or_open_cfg(char* path)
                 config->key_mod = atoi(split);
                 _log(append("key_mod=", split));     
             }
+            else if (strcmp(split, "title_text") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->title_text = split;
+                _log(append("title_text=", split));     
+            }
             c = read_line(cfg);
         }
     }
@@ -191,6 +198,8 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
         fprintf(cfg, "# When set to 1 the icons will be reversed Default %i\n", config->reverse);
         fprintf(cfg, "icon_reverse=%i\n", config->reverse);
+        fprintf(cfg, "#The text to set the dwm title bar to when no song is playing or the program exits. Default %s\n", config->title_text);
+        fprintf(cfg, "title_text=%s\n", config->title_text);
         fprintf(cfg, "# The keybinds. key_next (Next song. Default %i), key_prev (Previous song. Default %i), key_pause (Default %i), key_mod (Modifier eg. Ctrl. Default %i)\n", config->key_next, config->key_prev, config->key_pause, config->key_mod);
         fprintf(cfg, "# To find out keycodes & modifier masks run `xev | grep state` and look for state and keycode. State has to be converted from hex to decimal\n");
         fprintf(cfg, "key_next=%i\n", config->key_next);

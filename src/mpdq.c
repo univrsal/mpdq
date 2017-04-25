@@ -11,8 +11,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
-#include <util.h>
-#include <cfg.h>
+#include <src/util.h>
+#include <src/cfg.h>
 
 #define STATE_UNKOWN 0
 #define STATE_STOPPED 1
@@ -101,7 +101,7 @@ int main(int argc, char const *argv[])
                 {
                     case STATE_UNKOWN:
                     case STATE_STOPPED:
-                            system("xsetroot -name dwm-6.1"); // Stopped/Unknown status
+                            system(append("xsetroot -name ", cfg->title_text)); // Stopped/Unknown status
                             no_refresh = 1;
                         break;
                     case STATE_WORK:
@@ -163,7 +163,7 @@ int main(int argc, char const *argv[])
     }
 
     printf("Disconnecting...\n");
-    system("xsetroot -name dwm-6.1");
+    system(append("xsetroot -name ", cfg->title_text));
 
     // Close Connection & free resources
     clean_up();

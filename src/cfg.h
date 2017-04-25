@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <util.h>
+#include <src/util.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
@@ -20,6 +20,7 @@ struct _Config
 	unsigned int root_window_song;
 	unsigned int song_to_text_file;
 	char* file_path;
+	char* title_text;
 	unsigned int delay;
 	int icon_color;
 	unsigned int max_song_length;

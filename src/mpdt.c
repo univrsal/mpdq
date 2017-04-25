@@ -4,7 +4,7 @@
  * Adding trayicons to control mpd
  * Licenced under MPL 2.0
  */
-#include <mpdt.h>
+#include <src/mpdt.h>
 #include <stdio.h>
 
 #define SYSTEM_TRAY_REQUEST_DOCK 0
@@ -68,7 +68,10 @@ void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd
     switch (btn)
     {
         case BTN_NEXT:
-            mpd_run_next(conn);
+            if (mpd_status_get_next_song_id(status) >= 0)
+            {
+                mpd_run_next(conn);    
+            }
             break;
         case BTN_PLAY:
             if (state > 1)

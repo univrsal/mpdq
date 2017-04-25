@@ -9,8 +9,8 @@
 #include <string.h>
 #include <mpd/client.h>
 #include <mpd/stats.h>
-#include <cfg.h>
-#include <util.h>
+#include <src/cfg.h>
+#include <src/util.h>
 
 /* Vars */
 
