@@ -3,7 +3,7 @@ MusicPlayerDaemon Query
 
 ![mpdq](http://i.imgur.com/QSDHzoO.jpg)
 Adding traybar icons to control mpd. To make this work with dwm install the [sytray patch](http://dwm.suckless.org/patches/systray).
-Tested with i3 and dwm!
+Tested with i3, dwm and Cinnamon!
 
 Use the buttons to:
 * Move to the previous song
