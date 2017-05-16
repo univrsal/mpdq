@@ -15,7 +15,7 @@
 #define CFG_H
 
 struct _Config
-{	
+{
 	float icon_scale;
 	unsigned int root_window_song;
 	unsigned int song_to_text_file;
@@ -24,6 +24,7 @@ struct _Config
 	unsigned int delay;
 	int icon_color;
 	unsigned int max_song_length;
+	int xOffset, yOffset;
 	int volume_timeout;
 	int reverse;
 

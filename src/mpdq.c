@@ -42,23 +42,23 @@ int main(int argc, char const *argv[])
 {
     // Listen for CTRL + C
     signal(SIGINT, stop);
-    
+
     cfg = create_or_open_cfg("./mpdq.cfg");
     initX(cfg);
-    
+
     // Vars
     int event_result = -1;
     debug = argc > 1;
-    
+
     char* sub_dwm_title[cfg->max_song_length];
 
-    
 
-    // Connect to local MPD 
+
+    // Connect to local MPD
     conn = mpd_connection_new(NULL, 0, 0);
     if (conn)
         _log("Connected!\n");
-    else if (!conn) 
+    else if (!conn)
         die("Connection failure!\n", 1);
 
     // Get song
@@ -71,14 +71,14 @@ int main(int argc, char const *argv[])
         if (!song)
         {
             _log("Couldn't recieve current song!\n");
-            system("xsetroot -name dwm-6.1"); 
+            system("xsetroot -name dwm-6.1");
         }
         else if (!status)
         {
             _log("Couldn't recieve status of MPD!\n");
-            system("xsetroot -name dwm-6.1"); 
+            system("xsetroot -name dwm-6.1");
         }
-        else 
+        else
         {
              // Get song info
             song_name = (char *) mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
@@ -86,16 +86,16 @@ int main(int argc, char const *argv[])
 
             if (artist_name)
             {
-                dwm_title = append(append(artist_name, space), song_name);   
+                dwm_title = append(append(artist_name, space), song_name);
             }
             else
             {
-                dwm_title = song_name;   
+                dwm_title = song_name;
             }
 
             if (cfg->song_to_text_file && dwm_title != NULL)
                 system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
-                           
+
             if (cfg->root_window_song && song_name)
                 switch (state)
                 {
@@ -106,7 +106,7 @@ int main(int argc, char const *argv[])
                         break;
                     case STATE_WORK:
                             if (strlen(dwm_title) > cfg->max_song_length + 3) // Cut off songs
-                            { 
+                            {
                                 memcpy(sub_dwm_title, &dwm_title[0], cfg->max_song_length - 4);
 
                                 if (volume != NULL)
@@ -142,10 +142,10 @@ int main(int argc, char const *argv[])
                     volume = NULL;
                 }
                 cycles++;
-            } 
+            }
             else
             {
-                cycles = 0;    
+                cycles = 0;
             }
         }
 
@@ -153,7 +153,7 @@ int main(int argc, char const *argv[])
 
         if (event_result == 1) // Toggle state playing <--> paused, without waiting for the next update cycle
             state = state == 2 ? 3 : 2;
-        
+
         draw_tray(state, cfg->icon_color);
 
         if (event_result > -1)

@@ -30,19 +30,30 @@ void initX(Config* cfg)
     root_window = DefaultRootWindow(display);
 
     for (int i = 0; i < npathpoints; i++)
+    {
         scale_point(cfg->icon_scale, &play_path[i]);
+        shift_point(cfg->xOffset, cfg->yOffset, &play_path[i]);
+    }
 
     for (int i = 0; i < npathpoints; i++)
+    {
         scale_point(cfg->icon_scale, &back_path[i]);
+        shift_point(cfg->xOffset, cfg->yOffset, &back_path[i]);
+    }
 
     create_tray_icons(cfg->reverse);
-    
+
     setup_keybinds(cfg);
 
     scale_rect(cfg->icon_scale, &next_rect);
     scale_rect(cfg->icon_scale, &back_rect);
     scale_rect(cfg->icon_scale, &pause_rect1);
     scale_rect(cfg->icon_scale, &pause_rect2);
+
+    shift_rect(cfg->xOffset, cfg->yOffset, &next_rect);
+    shift_rect(cfg->xOffset, cfg->yOffset, &back_rect);
+    shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect1);
+    shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect2);
 }
 
 void send_message(Display* dpy, Window w, long message, long data1, long data2, long data3)
@@ -70,7 +81,7 @@ void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd
         case BTN_NEXT:
             if (mpd_status_get_next_song_id(status) >= 0)
             {
-                mpd_run_next(conn);    
+                mpd_run_next(conn);
             }
             break;
         case BTN_PLAY:
@@ -108,14 +119,14 @@ void create_tray_icons(int reverse)
         {
             tray_windows[i] = XCreateWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
             //XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, BlackPixel(display, screen), WhitePixel(display, screen));
-            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);  
+            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);
             XSelectInput(display, tray_windows[i], ButtonPress);
             send_message(display, XGetSelectionOwner(display, XInternAtom(display, "_NET_SYSTEM_TRAY_S0", False)), SYSTEM_TRAY_REQUEST_DOCK, tray_windows[i], 0, 0);
-            
+
             Window root;
             int32_t x_r = 0, y_r = 0;
             uint32_t border_r = 0, xwin_depth_r = 0;
-            
+
             XMoveResizeWindow(display, tray_windows[i], x_r, y_r, 32, 32);
             XGetGeometry(display, tray_windows[i], &root, &x_r, &y_r, &tray_width, &tray_height, &border_r, &xwin_depth_r);
         }
@@ -126,23 +137,23 @@ void create_tray_icons(int reverse)
         {
             tray_windows[i] = XCreateWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, vinfo.depth, InputOutput, vinfo.visual, CWColormap | CWBorderPixel | CWBackPixel, &attr);
             //XCreateSimpleWindow(display, RootWindow(display, screen), 0, 0, tray_width, tray_height, 0, BlackPixel(display, screen), WhitePixel(display, screen));
-            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);  
+            gc[i] = XCreateGC(display, tray_windows[i], 0, 0);
             XSelectInput(display, tray_windows[i], ButtonPress);
             send_message(display, XGetSelectionOwner(display, XInternAtom(display, "_NET_SYSTEM_TRAY_S0", False)), SYSTEM_TRAY_REQUEST_DOCK, tray_windows[i], 0, 0);
-            
+
             Window root;
             int32_t x_r = 0, y_r = 0;
             uint32_t border_r = 0, xwin_depth_r = 0;
-            
+
             XMoveResizeWindow(display, tray_windows[i], x_r, y_r, 32, 32);
             XGetGeometry(display, tray_windows[i], &root, &x_r, &y_r, &tray_width, &tray_height, &border_r, &xwin_depth_r);
-        } 
+        }
     }
 
 }
 
 void draw_tray(int state, int icon_color)
-{ 
+{
     XClearWindow(display, tray_windows[1]);
 
     for (int i = 0; i < 3; i++)
@@ -187,7 +198,7 @@ int handle_events(void)
                         {
                             return i;
                         }
-                    }  
+                    }
                 }
                 else if (event.xbutton.button == Button4)
                     return BTN_SCROLLUP;
@@ -200,7 +211,7 @@ int handle_events(void)
                 if (event.xkey.keycode == key_prev) {
                     printf("Hotkey for previous song pressed!\n");
                     return BTN_PREV;
-                } 
+                }
                 else if (event.xkey.keycode == key_next)
                 {
                     printf("Hotkey for next song pressed!\n");
@@ -231,7 +242,7 @@ void setup_keybinds(Config* cfg)
 {
     int pointer_mode = GrabModeAsync;
     int keyboard_mode = GrabModeAsync;
-    
+
     XGrabKey(display, cfg->key_next, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
     XGrabKey(display, cfg->key_prev, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
     XGrabKey(display, cfg->key_pause, cfg->key_mod, root_window, False, pointer_mode, keyboard_mode);
@@ -249,7 +260,7 @@ void clear_keybinds(Config* cfg)
     XUngrabKey(display, cfg->key_next, cfg->key_mod, root_window);
     XUngrabKey(display, cfg->key_prev, cfg->key_mod, root_window);
     XUngrabKey(display, cfg->key_pause, cfg->key_mod, root_window);
-    
+
     key_next = 0;
     key_prev = 0;
     key_pause = 0;
@@ -262,7 +273,7 @@ void destroy_tray_icons(void)
 
     for (int i = 0; i < 3; i++)
          XFreeGC(display, gc[i]);
-    
+
     XCloseDisplay(display);
 
     free_rect(&next_rect);

@@ -15,7 +15,7 @@ void die(char* c, int stop)
 {
 	if (debug)
 		printf(c);
-	if (stop) 
+	if (stop)
 		exit(EXIT_FAILURE);
 }
 
@@ -41,7 +41,7 @@ char* append(char* a, char* b)
     return out;
 }
 
-int startsWith(const char* str, const char* pre)
+int starts_with(const char* str, const char* pre)
 {
     size_t lenpre = strlen(pre),
            lenstr = strlen(str);
@@ -60,6 +60,18 @@ void scale_rect(float scale, Rect* r)
     r->y = r->y * scale;
     r->w = r->w * scale;
     r->h = r->h * scale;
+}
+
+void shift_point(int x, int y, XPoint* p)
+{
+    p->x += x;
+    p->y += y;
+}
+
+void shift_rect(int x, int y, Rect* r)
+{
+    r->x += x;
+    r->y += y;
 }
 
 void free_rect(Rect* r)

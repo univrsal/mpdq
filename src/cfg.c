@@ -1,46 +1,46 @@
 /**
- * MPDQ
- * Music Player Daemon Query
- * Adding trayicons to control mpd
- * Licenced under MPL 2.0
- */
+* MPDQ
+* Music Player Daemon Query
+* Adding trayicons to control mpd
+* Licenced under MPL 2.0
+*/
 #include <src/cfg.h>
 
 FILE* open_file_rw(const char* path)
 {
-	FILE * f = fopen(path, "r");
-	 if (f == NULL)
-        exit(EXIT_FAILURE);
+    FILE * f = fopen(path, "r");
+    if (f == NULL)
+    exit(EXIT_FAILURE);
     return f;
 }
 
 void close_file(FILE* file)
 {
-	fclose(file);
+    fclose(file);
 }
 
 char* read_line(FILE* file)
 {
-	char* line;
-	size_t len = 0;
+    char* line;
+    size_t len = 0;
     ssize_t read;
     read = getline(&line, &len, file);
     if (read == -1)
     {
-    	return NULL;
+        return NULL;
     }
-    	
-   	return line;
+
+    return line;
 }
 
 void write_line(FILE* file, char* c)
 {
-	fprintf(file, c);
+    fprintf(file, c);
 }
 
 Config* create_or_open_cfg(char* path)
 {
-	Config* config = malloc(sizeof(Config));
+    Config* config = malloc(sizeof(Config));
     Display*    dpy     = XOpenDisplay(0);
 
     // Initialize default values, incase loading the config goes wrong
@@ -54,6 +54,8 @@ Config* create_or_open_cfg(char* path)
     config->title_text = "dwm-6.1";
     config->volume_timeout = 1500;
     config->reverse = 0;
+    config->xOffset = 0;
+    config->yOffset = 0;
 
     config->key_next = XKeysymToKeycode(dpy, XK_N);
     config->key_prev = XKeysymToKeycode(dpy, XK_B);
@@ -62,41 +64,41 @@ Config* create_or_open_cfg(char* path)
 
     dpy = NULL;
 
-	if(access(path, F_OK) != -1)
-	{
-    	_log(append("Reading config from ", path));
-    	_log("\n");
-    	
-    	FILE* cfg = open_file_rw(path);
-    	
-    	if (cfg == NULL)
+    if(access(path, F_OK) != -1)
+    {
+        _log(append("Reading config from ", path));
+        _log("\n");
+
+        FILE* cfg = open_file_rw(path);
+
+        if (cfg == NULL)
         {
-    		_log("Error opening config! Using default values\n");
-    		return NULL;
-    	}
+            _log("Error opening config! Using default values\n");
+            return NULL;
+        }
 
-    	char* c = read_line(cfg);
-    	char* split;
+        char* c = read_line(cfg);
+        char* split;
 
-    	while(c != NULL)
-    	{
-    		while(startsWith(c, "#"))
-    			c = read_line(cfg);
+        while(c != NULL)
+        {
+            while(starts_with(c, "#"))
+            c = read_line(cfg);
 
-    		split = strtok (c, "=");
+            split = strtok (c, "=");
 
-    		if (strcmp(split, "song_to_root_window") == 0)
-    		{
-    			split = strtok(NULL, "=");
-    			config->root_window_song = atoi(split);
-    			_log(append("song_to_root_window=", split));
-    		}
-    		else if (strcmp(split, "icon_scale") == 0)
-    		{
-				split = strtok(NULL, "=");
-				config->icon_scale = atof(split);
-    			_log(append("icon_scale=", split));
-    		}
+            if (strcmp(split, "song_to_root_window") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->root_window_song = atoi(split);
+                _log(append("song_to_root_window=", split));
+            }
+            else if (strcmp(split, "icon_scale") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->icon_scale = atof(split);
+                _log(append("icon_scale=", split));
+            }
             else if(strcmp(split, "delay") == 0)
             {
                 split = strtok(NULL, "=");
@@ -131,59 +133,72 @@ Config* create_or_open_cfg(char* path)
             {
                 split = strtok(NULL, "=");
                 config->volume_timeout = atoi(split);
-                _log(append("volume_timeout=", split));     
+                _log(append("volume_timeout=", split));
             }
             else if (strcmp(split, "icon_reverse") == 0)
             {
                 split = strtok(NULL, "=");
                 config->reverse = atoi(split);
-                _log(append("icon_reverse=", split));     
+                _log(append("icon_reverse=", split));
             }
             else if (strcmp(split, "key_next") == 0)
             {
                 split = strtok(NULL, "=");
                 config->key_next = atoi(split);
-                _log(append("key_next=", split));     
+                _log(append("key_next=", split));
             }
             else if (strcmp(split, "key_prev") == 0)
             {
                 split = strtok(NULL, "=");
                 config->key_prev = atoi(split);
-                _log(append("key_prev=", split));     
+                _log(append("key_prev=", split));
             }
             else if (strcmp(split, "key_pause") == 0)
             {
                 split = strtok(NULL, "=");
                 config->key_pause = atoi(split);
-                _log(append("key_pause=", split));     
+                _log(append("key_pause=", split));
             }
             else if (strcmp(split, "key_mod") == 0)
             {
                 split = strtok(NULL, "=");
                 config->key_mod = atoi(split);
-                _log(append("key_mod=", split));     
+                _log(append("key_mod=", split));
             }
             else if (strcmp(split, "title_text") == 0)
             {
                 split = strtok(NULL, "=");
                 config->title_text = split;
-                _log(append("title_text=", split));     
+                _log(append("title_text=", split));
             }
+            else if (strcmp(split, "x_offset") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->xOffset = atoi(split);
+                _log(append("x_offset=", split));
+            }
+            else if (strcmp(split, "y_offset") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->yOffset = atoi(split);
+                _log(append("y_offset=", split));
+            }
+
             c = read_line(cfg);
         }
     }
-	else
+    else
     {
         _log(append("No config creating it under ", path));
-	    _log("\n");
+        _log("\n");
 
-	    FILE* cfg = fopen(path, "ab+");
+        FILE* cfg = fopen(path, "ab+");
 
-	    fprintf(cfg, "# MPDQ v%s Config\n", version);
-	    fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
-	    fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
-	 	fprintf(cfg, "# Whether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->root_window_song);
-	    fprintf(cfg, "song_to_root_window=%i\n", config->root_window_song);
+        fprintf(cfg, "# MPDQ v%s Config\n", version);
+        fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
+        fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
+        fprintf(cfg, "# Whether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->root_window_song);
+        fprintf(cfg, "song_to_root_window=%i\n", config->root_window_song);
         fprintf(cfg, "# The amount of milliseconds to wait between updates Default %i\n", config->delay);
         fprintf(cfg, "delay=%i\n", config->delay);
         fprintf(cfg, "# The color of the tray icons in RGB Hex format (RRGGBB) e.g. black = 000000, white = FFFFFF. Default bbbbbb\n");
@@ -200,13 +215,17 @@ Config* create_or_open_cfg(char* path)
         fprintf(cfg, "icon_reverse=%i\n", config->reverse);
         fprintf(cfg, "#The text to set the dwm title bar to when no song is playing or the program exits. Default %s\n", config->title_text);
         fprintf(cfg, "title_text=%s\n", config->title_text);
+        fprintf(cfg, "# Offsets. X and Y shift of the tray icons (Top left corner) Default X: %i, Y: %i\n", config->xOffset, config->yOffset);
+        fprintf(cfg, "x_offset=%i\n", config->xOffset);
+        fprintf(cfg, "y_offset=%i\n", config->yOffset);
+
         fprintf(cfg, "# The keybinds. key_next (Next song. Default %i), key_prev (Previous song. Default %i), key_pause (Default %i), key_mod (Modifier eg. Ctrl. Default %i)\n", config->key_next, config->key_prev, config->key_pause, config->key_mod);
         fprintf(cfg, "# To find out keycodes & modifier masks run `xev | grep state` and look for state and keycode. State has to be converted from hex to decimal\n");
         fprintf(cfg, "key_next=%i\n", config->key_next);
         fprintf(cfg, "key_prev=%i\n", config->key_prev);
         fprintf(cfg, "key_pause=%i\n", config->key_pause);
-        fprintf(cfg, "key_mod=%i\n", config->key_mod);   
+        fprintf(cfg, "key_mod=%i\n", config->key_mod);
     }
 
-	return config;
+    return config;
 }

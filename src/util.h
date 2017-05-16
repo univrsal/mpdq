@@ -18,7 +18,7 @@ extern char* volume;
 extern int cycles;
 
 struct _Rect
-{	
+{
 	int x, y, w, h;
 };
 
@@ -30,11 +30,15 @@ void _log(char* c);
 
 char* append(char* a, char* b);
 
-int startsWith(const char* str, const char* pre);
+int starts_with(const char* str, const char* pre);
 
 void scale_point(float scale, XPoint* p);
 
 void scale_rect(float scale, Rect* r);
+
+void shift_point(int x, int y, XPoint* p);
+
+void shift_rect(int x, int y, Rect* r);
 
 void free_rect(Rect* r);
 
