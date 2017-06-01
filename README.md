@@ -13,6 +13,16 @@ Use the buttons to:
 
 There are configurable hotkeys for these actions
 
+You can either build it yourself or get the [binaries](https://github.com/univrsal/mpdq/releases)
+
+Building
+```
+$ git clone https://github.com/univrsal/mpdq.git
+$ cd ./mpdq
+$ make
+```
+You might need to adjust the Makefile and config.mk to make sure that the compiler finds xlib and libmpdclient 
+
 Usage
 ```
 chmod a+x ./mpdq
