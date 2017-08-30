@@ -10,7 +10,7 @@ FILE* open_file_rw(const char* path)
 {
     FILE * f = fopen(path, "r");
     if (f == NULL)
-    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     return f;
 }
 
@@ -44,23 +44,26 @@ Config* create_or_open_cfg(char* path)
     Display*    dpy     = XOpenDisplay(0);
 
     // Initialize default values, incase loading the config goes wrong
-    config->icon_scale = 1.0;
-    config->root_window_song = 1;
-    config->delay = 500;
-    config->icon_color = 0xbbbbbb;
-    config->max_song_length = 35;
-    config->song_to_text_file = 0;
-    config->file_path = "./mpd-nowplaying.txt";
-    config->title_text = "dwm-6.1";
-    config->volume_timeout = 1500;
-    config->reverse = 0;
-    config->xOffset = 0;
-    config->yOffset = 0;
+    config->song_to_root_window = true;
+    config->reverse_icons       = false;
+    config->song_to_text_file   = false;
+    config->enable_hotkeys      = true;
+    config->enable_icons        = true;
 
-    config->key_next = XKeysymToKeycode(dpy, XK_N);
-    config->key_prev = XKeysymToKeycode(dpy, XK_B);
-    config->key_pause = XKeysymToKeycode(dpy, XK_P);
-    config->key_mod = 128;
+    config->icon_scale          = 1.0;
+    config->delay               = 500;
+    config->icon_color          = 0xbbbbbb;
+    config->max_song_length     = 35;
+    config->file_path           = "./mpd-nowplaying.txt";
+    config->title_text          = "dwm-6.1";
+    config->volume_timeout      = 1500;
+    config->xOffset             = 0;
+    config->yOffset             = 0;
+
+    config->key_next            = XKeysymToKeycode(dpy, XK_N);
+    config->key_prev            = XKeysymToKeycode(dpy, XK_B);
+    config->key_pause           = XKeysymToKeycode(dpy, XK_P);
+    config->key_mod             = 128;
 
     dpy = NULL;
 
@@ -83,15 +86,27 @@ Config* create_or_open_cfg(char* path)
         while(c != NULL)
         {
             while(starts_with(c, "#"))
-            c = read_line(cfg);
+                c = read_line(cfg);
 
             split = strtok (c, "=");
 
             if (strcmp(split, "song_to_root_window") == 0)
             {
                 split = strtok(NULL, "=");
-                config->root_window_song = atoi(split);
+                config->song_to_root_window = atoi(split);
                 _log(append("song_to_root_window=", split));
+            }
+            else if (strcmp(split, "enable_icons") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->enable_icons = atoi(split);
+                _log(append("enable_icons=", split));
+            }
+            else if (strcmp(split, "enable_hotkeys") == 0)
+            {
+                split = strtok(NULL, "=");
+                config->enable_hotkeys = atoi(split);
+                _log(append("enable_hotkeys=", split));
             }
             else if (strcmp(split, "icon_scale") == 0)
             {
@@ -135,11 +150,11 @@ Config* create_or_open_cfg(char* path)
                 config->volume_timeout = atoi(split);
                 _log(append("volume_timeout=", split));
             }
-            else if (strcmp(split, "icon_reverse") == 0)
+            else if (strcmp(split, "icon_reverse_icons") == 0)
             {
                 split = strtok(NULL, "=");
-                config->reverse = atoi(split);
-                _log(append("icon_reverse=", split));
+                config->reverse_icons = atoi(split);
+                _log(append("icon_reverse_icons=", split));
             }
             else if (strcmp(split, "key_next") == 0)
             {
@@ -194,27 +209,44 @@ Config* create_or_open_cfg(char* path)
 
         FILE* cfg = fopen(path, "ab+");
 
-        fprintf(cfg, "# MPDQ v%s Config\n", version);
-        fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
-        fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
-        fprintf(cfg, "# Whether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->root_window_song);
-        fprintf(cfg, "song_to_root_window=%i\n", config->root_window_song);
-        fprintf(cfg, "# The amount of milliseconds to wait between updates Default %i\n", config->delay);
-        fprintf(cfg, "delay=%i\n", config->delay);
-        fprintf(cfg, "# The color of the tray icons in RGB Hex format (RRGGBB) e.g. black = 000000, white = FFFFFF. Default bbbbbb\n");
-        fprintf(cfg, "icon_color=bbbbbb\n");
-        fprintf(cfg, "# The maximum character length of songs until they get cut off. Default %i\n", config->max_song_length);
-        fprintf(cfg, "song_max_length=%i\n", config->max_song_length);
+        fprintf(cfg, "# MPDQ %s Config\n", version);
+        
+        fprintf(cfg, "# Set to 0 to disable hotkeys Default %i\n", config->enable_hotkeys);
+        fprintf(cfg, "enable_hotkeys=%i\n", config->enable_hotkeys);
+
+        fprintf(cfg, "# Set to 0 to disable the tray icons Default %i\n", config->enable_icons);
+        fprintf(cfg, "enable_icons=%i\n", config->enable_icons);
+
+        fprintf(cfg, "# Whether to set the title of the root window to the current song (useful for dwm) Default %i\n", config->song_to_root_window);
+        fprintf(cfg, "song_to_root_window=%i\n", config->song_to_root_window);
+        
+        fprintf(cfg, "# When set to 1 the icons will be reverse_iconsd Default %i\n", config->reverse_icons);
+        fprintf(cfg, "icon_reverse_icons=%i\n", config->reverse_icons);
+        
         fprintf(cfg, "# Whether to write the current song to a text file. Default %i\n", config->song_to_text_file);
         fprintf(cfg, "song_to_text_file=%i\n", config->song_to_text_file);
+
+        fprintf(cfg, "# The scaling of the tray icons in x/100 (50 Percent = 0.5) Default %f\n", config->icon_scale);
+        fprintf(cfg, "icon_scale=%f\n", config->icon_scale);
+        
+        fprintf(cfg, "# The amount of milliseconds to wait between updates Default %i\n", config->delay);
+        fprintf(cfg, "delay=%i\n", config->delay);
+        
+        fprintf(cfg, "# The color of the tray icons in RGB Hex format (RRGGBB) e.g. black = 000000, white = FFFFFF. Default bbbbbb\n");
+        fprintf(cfg, "icon_color=bbbbbb\n");
+        
+        fprintf(cfg, "# The maximum character length of songs until they get cut off. Default %i\n", config->max_song_length);
+        fprintf(cfg, "song_max_length=%i\n", config->max_song_length);
+        
         fprintf(cfg, "# The path of the text file containing the current song. Default %s\n", config->file_path);
         fprintf(cfg, "file_path=%s\n", config->file_path);
+        
         fprintf(cfg, "# The time in ms the volume will be shown when scrolling over the tray icons Default %i\n", config->volume_timeout);
         fprintf(cfg, "volume_timeout=%i\n", config->volume_timeout);
-        fprintf(cfg, "# When set to 1 the icons will be reversed Default %i\n", config->reverse);
-        fprintf(cfg, "icon_reverse=%i\n", config->reverse);
+        
         fprintf(cfg, "#The text to set the dwm title bar to when no song is playing or the program exits. Default %s\n", config->title_text);
         fprintf(cfg, "title_text=%s\n", config->title_text);
+        
         fprintf(cfg, "# Offsets. X and Y shift of the tray icons (Top left corner) Default X: %i, Y: %i\n", config->xOffset, config->yOffset);
         fprintf(cfg, "x_offset=%i\n", config->xOffset);
         fprintf(cfg, "y_offset=%i\n", config->yOffset);

@@ -9,51 +9,47 @@
 
 #define SYSTEM_TRAY_REQUEST_DOCK 0
 
-#define BTN_NEXT 0
-#define BTN_PLAY 1
-#define BTN_PREV 2
-#define BTN_SCROLLUP 3
-#define BTN_SCROLLDOWN 4
+ void initX(Config* cfg)
+ {
+    if (!cfg->enable_icons && !cfg->enable_hotkeys)
+        return;
 
-#define EVENT_NEXT 0
-#define EVENT_PREV 2
-
-void initX(Config* cfg)
-{
     XInitThreads();
-    if((display = XOpenDisplay(NULL)) == NULL) {
+    if((display = XOpenDisplay(NULL)) == NULL)
         die("Cannot open display", 1);
-    }
-
+    
     screen = DefaultScreen(display);
-
     root_window = DefaultRootWindow(display);
 
-    for (int i = 0; i < npathpoints; i++)
+    if (cfg->enable_icons)
     {
-        scale_point(cfg->icon_scale, &play_path[i]);
-        shift_point(cfg->xOffset, cfg->yOffset, &play_path[i]);
+        for (int i = 0; i < npathpoints; i++)
+        {
+            scale_point(cfg->icon_scale, &play_path[i]);
+            shift_point(cfg->xOffset, cfg->yOffset, &play_path[i]);
+        }
+
+        for (int i = 0; i < npathpoints; i++)
+        {
+            scale_point(cfg->icon_scale, &back_path[i]);
+            shift_point(cfg->xOffset, cfg->yOffset, &back_path[i]);
+        }
+
+        create_tray_icons(cfg->reverse_icons);
+
+        scale_rect(cfg->icon_scale, &next_rect);
+        scale_rect(cfg->icon_scale, &back_rect);
+        scale_rect(cfg->icon_scale, &pause_rect1);
+        scale_rect(cfg->icon_scale, &pause_rect2);
+
+        shift_rect(cfg->xOffset, cfg->yOffset, &next_rect);
+        shift_rect(cfg->xOffset, cfg->yOffset, &back_rect);
+        shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect1);
+        shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect2);
     }
-
-    for (int i = 0; i < npathpoints; i++)
-    {
-        scale_point(cfg->icon_scale, &back_path[i]);
-        shift_point(cfg->xOffset, cfg->yOffset, &back_path[i]);
-    }
-
-    create_tray_icons(cfg->reverse);
-
-    setup_keybinds(cfg);
-
-    scale_rect(cfg->icon_scale, &next_rect);
-    scale_rect(cfg->icon_scale, &back_rect);
-    scale_rect(cfg->icon_scale, &pause_rect1);
-    scale_rect(cfg->icon_scale, &pause_rect2);
-
-    shift_rect(cfg->xOffset, cfg->yOffset, &next_rect);
-    shift_rect(cfg->xOffset, cfg->yOffset, &back_rect);
-    shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect1);
-    shift_rect(cfg->xOffset, cfg->yOffset, &pause_rect2);
+    
+    if (cfg->enable_hotkeys)
+        setup_keybinds(cfg);
 }
 
 void send_message(Display* dpy, Window w, long message, long data1, long data2, long data3)
@@ -79,30 +75,30 @@ void tray_window_event(int btn, int state, struct mpd_status* status, struct mpd
     switch (btn)
     {
         case BTN_NEXT:
-            if (mpd_status_get_next_song_id(status) >= 0)
-            {
-                mpd_run_next(conn);
-            }
-            break;
+        if (mpd_status_get_next_song_id(status) >= 0)
+        {
+            mpd_run_next(conn);
+        }
+        break;
         case BTN_PLAY:
-            if (state > 1)
-            {
-                mpd_run_toggle_pause(conn);
-            }
-            break;
+        if (state > 1)
+        {
+            mpd_run_toggle_pause(conn);
+        }
+        break;
         case BTN_PREV:
-            mpd_run_previous(conn);
-            break;
+        mpd_run_previous(conn);
+        break;
         case BTN_SCROLLDOWN:
-            change_volume(-1, status, conn);
-            break;
+        change_volume(-1, status, conn);
+        break;
         case BTN_SCROLLUP:
-            change_volume(1, status, conn);
-            break;
+        change_volume(1, status, conn);
+        break;
     }
 }
 
-void create_tray_icons(int reverse)
+void create_tray_icons(int reverse_icons)
 {
 
     XVisualInfo vinfo;
@@ -113,7 +109,7 @@ void create_tray_icons(int reverse)
     attr.border_pixel = 0;
     attr.background_pixel = 0;
 
-    if (reverse)
+    if (reverse_icons)
     {
         for (int i = 2; i >= 0; i--)
         {
@@ -165,18 +161,24 @@ void draw_tray(int state, int icon_color)
                 XFillPolygon(display, tray_windows[i],   gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Triangle
                 XFillRectangle(display, tray_windows[i], gc[i], next_rect.x, next_rect.y, next_rect.w, next_rect.h);
                 break;
+
             case BTN_PLAY:
                 if (state != 2)
+                {
                     XFillPolygon(display, tray_windows[i], gc[i], play_path, npathpoints, Complex, CoordModeOrigin); // Play Icon
+                }
                 else // Pause
                 {
                     XFillRectangle(display, tray_windows[i], gc[i], pause_rect1.x, pause_rect1.y, pause_rect1.w,  pause_rect1.h);
                     XFillRectangle(display, tray_windows[i], gc[i], pause_rect2.x, pause_rect2.y, pause_rect2.w,  pause_rect2.h);
                 }
                 break;
+
             case BTN_PREV:
                 XFillPolygon(display, tray_windows[i], gc[i], back_path, npathpoints, Complex, CoordModeOrigin);
                 XFillRectangle(display, tray_windows[i], gc[i], back_rect.x, back_rect.y, back_rect.w, back_rect.h);
+            default:
+                break;
         }
     }
 }
@@ -189,26 +191,32 @@ int handle_events(void)
 
         switch(event.type)
         {
-            case ButtonPress:
-                if (event.xbutton.button == Button1) // Clicked on traybar -> execute button action
+        case ButtonPress:
+            if (event.xbutton.button == Button1) // Clicked on traybar -> execute button action
+            {
+                for (int i = 0; i < 3; i++)
                 {
-                    for (int i = 0; i < 3; i++)
+                    if (event.xany.window == tray_windows[i])
                     {
-                        if (event.xany.window == tray_windows[i])
-                        {
-                            return i;
-                        }
+                        return i;
                     }
                 }
-                else if (event.xbutton.button == Button4)
-                    return BTN_SCROLLUP;
-                else if (event.xbutton.button == Button5)
-                    return BTN_SCROLLDOWN;
-                break;
-            case KeyPress:
+            }
+            else if (event.xbutton.button == Button4)
+            {
+                return BTN_SCROLLUP;
+            }
+            else if (event.xbutton.button == Button5)
+            {
+                return BTN_SCROLLDOWN;
+            }
+            break;
+
+        case KeyPress:
                 printf("Keypressed! KeyCode: %i\n", event.xkey.keycode);
 
-                if (event.xkey.keycode == key_prev) {
+                if (event.xkey.keycode == key_prev)
+                {
                     printf("Hotkey for previous song pressed!\n");
                     return BTN_PREV;
                 }
@@ -222,7 +230,7 @@ int handle_events(void)
                     printf("Hotkey for pausing pressed\n");
                     return BTN_PLAY;
                 }
-                break;
+            break;
         }
     }
     return -1;
@@ -272,12 +280,12 @@ void destroy_tray_icons(void)
         XDestroyWindow(display, tray_windows[i]);
 
     for (int i = 0; i < 3; i++)
-         XFreeGC(display, gc[i]);
+     XFreeGC(display, gc[i]);
 
-    XCloseDisplay(display);
+ XCloseDisplay(display);
 
-    free_rect(&next_rect);
-    free_rect(&back_rect);
-    free_rect(&pause_rect1);
-    free_rect(&pause_rect1);
+ free_rect(&next_rect);
+ free_rect(&back_rect);
+ free_rect(&pause_rect1);
+ free_rect(&pause_rect1);
 }

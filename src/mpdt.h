@@ -4,13 +4,29 @@
  * Adding trayicons to control mpd
  * Licenced under MPL 2.0
  */
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <string.h>
 #include <mpd/client.h>
-#include <mpd/stats.h>
+#include <mpd/stats.h>1
 #include <src/cfg.h>
 #include <src/util.h>
+
+#ifndef MPDT_H
+#define MPDT_H
+
+#define BTN_NEXT 0
+#define BTN_PLAY 1
+#define BTN_PREV 2
+#define BTN_SCROLLUP 3
+#define BTN_SCROLLDOWN 4
+
+#define EVENT_NEXT 0
+#define EVENT_PREV 2
+
+#define MPD_PLAYING 2
+#define MPD_PAUSED 3
 
 /* Vars */
 
@@ -65,3 +81,5 @@ void destroy_tray_icons(void);
 void setup_keybinds(Config* cfg);
 
 void clear_keybinds(Config* cfg);
+
+#endif /* MPDT_H */

@@ -14,11 +14,20 @@
 #ifndef CFG_H
 #define CFG_H
 
+#define true 1
+#define false 0
+
+typedef int _bool;
+
 struct _Config
 {
+	_bool enable_icons;
+	_bool enable_hotkeys;
+	_bool song_to_root_window;
+	_bool song_to_text_file;
+	_bool reverse_icons;
+
 	float icon_scale;
-	unsigned int root_window_song;
-	unsigned int song_to_text_file;
 	char* file_path;
 	char* title_text;
 	unsigned int delay;
@@ -26,7 +35,7 @@ struct _Config
 	unsigned int max_song_length;
 	int xOffset, yOffset;
 	int volume_timeout;
-	int reverse;
+
 
 	int key_next;
 	int key_prev;

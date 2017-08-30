@@ -18,6 +18,10 @@
 #define STATE_STOPPED 1
 #define STATE_WORK 2
 
+#define BTN_PLAY 1
+#define MPD_PLAYING 2
+#define MPD_PAUSED 3
+
 /*　Vars */
 static volatile     int runFlag = 1;
 static struct       mpd_connection   *conn;
@@ -44,6 +48,14 @@ int main(int argc, char const *argv[])
     signal(SIGINT, stop);
 
     cfg = create_or_open_cfg("./mpdq.cfg");
+
+    // Connect to local MPD
+    conn = mpd_connection_new(NULL, 0, 0);
+    if (conn)
+        _log("Connected!\n");
+    else if (!conn)
+        die("Connection failure! No local MPD session running!\n", 1);
+
     initX(cfg);
 
     // Vars
@@ -51,15 +63,7 @@ int main(int argc, char const *argv[])
     debug = argc > 1;
 
     char* sub_dwm_title[cfg->max_song_length];
-
-
-
-    // Connect to local MPD
-    conn = mpd_connection_new(NULL, 0, 0);
-    if (conn)
-        _log("Connected!\n");
-    else if (!conn)
-        die("Connection failure!\n", 1);
+    char* set_root_cmd = append("xsetroot -name ", cfg->title_text);
 
     // Get song
     while (runFlag)
@@ -71,12 +75,12 @@ int main(int argc, char const *argv[])
         if (!song)
         {
             _log("Couldn't recieve current song!\n");
-            system("xsetroot -name dwm-6.1");
+            system(set_root_cmd);
         }
         else if (!status)
         {
             _log("Couldn't recieve status of MPD!\n");
-            system("xsetroot -name dwm-6.1");
+            system(set_root_cmd);
         }
         else
         {
@@ -96,12 +100,13 @@ int main(int argc, char const *argv[])
             if (cfg->song_to_text_file && dwm_title != NULL)
                 system(append(append(append("echo \"", dwm_title), "\" > "), cfg->file_path)); // NESTING FTW
 
-            if (cfg->root_window_song && song_name)
-                switch (state)
+            if (cfg->song_to_root_window && song_name)
+            {
+                 switch (state)
                 {
                     case STATE_UNKOWN:
                     case STATE_STOPPED:
-                            system(append("xsetroot -name ", cfg->title_text)); // Stopped/Unknown status
+                            system(set_root_cmd); // Stopped/Unknown status
                             no_refresh = 1;
                         break;
                     case STATE_WORK:
@@ -129,9 +134,10 @@ int main(int argc, char const *argv[])
                                 cmd = append(cmd, cmd_end);
                             }
                             no_refresh = 0;
-                }
+                }               
+            }
 
-            if (cfg->root_window_song && !no_refresh && cmd != NULL) // No need to set the same name twice
+            if (cfg->song_to_root_window && !no_refresh && cmd != NULL) // No need to set the same name twice
                 system(cmd);
 
             if (volume != NULL)
@@ -149,12 +155,14 @@ int main(int argc, char const *argv[])
             }
         }
 
-        event_result = handle_events();
+        if (cfg->enable_hotkeys || cfg->enable_icons)
+            event_result = handle_events();
 
-        if (event_result == 1) // Toggle state playing <--> paused, without waiting for the next update cycle
-            state = state == 2 ? 3 : 2;
+        if (event_result == BTN_PLAY) // Toggle state playing <--> paused, without waiting for the next update cycle
+            state = state == MPD_PLAYING ? MPD_PAUSED : MPD_PLAYING;
 
-        draw_tray(state, cfg->icon_color);
+        if (cfg->enable_icons)
+            draw_tray(state, cfg->icon_color);
 
         if (event_result > -1)
             tray_window_event(event_result, state, status, conn);
@@ -163,7 +171,9 @@ int main(int argc, char const *argv[])
     }
 
     printf("Disconnecting...\n");
-    system(append("xsetroot -name ", cfg->title_text));
+    
+    if (cfg->song_to_root_window);
+        system(set_root_cmd);
 
     // Close Connection & free resources
     clean_up();
@@ -172,11 +182,16 @@ int main(int argc, char const *argv[])
 
 void clean_up(void)
 {
-    destroy_tray_icons();
-    clear_keybinds();
+    if (cfg->enable_icons)
+        destroy_tray_icons();
+    
+    if (cfg->enable_hotkeys)
+        clear_keybinds(cfg);
+    
     mpd_status_free(status);
     mpd_connection_free(conn);
     mpd_song_free(song);
+    
     song_name = NULL;
     artist_name = NULL;
     space = NULL;
